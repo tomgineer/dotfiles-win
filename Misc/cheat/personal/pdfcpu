@@ -1,0 +1,7 @@
+# Split PDF
+# Will generate test_1-2.pdf and test_3-END.pdf
+# The "." is the output directory (The same as <FILE>)
+pdfcpu split -m page <FILE.PDF> . 3
+
+# Merge PDF
+pdfcpu merge <OUTPUT.PDF> <FILE1.PDF> <FILE2.PDF> <FILE3.PDF>

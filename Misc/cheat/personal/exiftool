@@ -1,0 +1,5 @@
+# Get Parameters
+exiftool -Parameters <FILE>
+
+# Clear MetaData
+exiftool -all= <FILE>

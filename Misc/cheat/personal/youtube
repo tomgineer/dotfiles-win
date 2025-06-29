@@ -1,0 +1,8 @@
+# Download Single Video as MKV (No Playlist)
+yt-dlp --no-playlist --merge-output-format mkv <URL>
+
+# Download Entire Playlist as MKV
+yt-dlp --yes-playlist --merge-output-format mkv <URL>
+
+# Download MP3 Only (Best Audio)
+yt-dlp --no-playlist -f bestaudio --extract-audio --audio-format mp3 <URL>

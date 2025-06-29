@@ -1,0 +1,23 @@
+# Download the repository, create the folder, and set up Git
+git clone https://github.com/tomgineer/dotfiles-win.git
+
+# Not needed here; clone already ran init
+# git init
+
+# List the configured remotes (should show origin)
+git remote -v
+
+# Show changed, staged, and untracked files
+git status
+
+# Display the current branch and any others that exist
+git branch
+
+# Stage every change in the working directory
+git add .
+
+# Save a snapshot with a descriptive message
+git commit -m "Describe changes"
+
+# Upload the committed changes to the main branch on GitHub
+git push origin main
