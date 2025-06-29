@@ -25,7 +25,7 @@ These dotfiles help me keep a consistent, efficient workflow across any Windows 
 > **Caution**  
 > The files are tuned to my preferences. Review and adapt them before applying to your own system.
 
-### Clone with submodules
+### Clone
 
 ```bash
-git clone --recurse-submodules https://github.com/YOUR_USERNAME/dotfiles-win.git
+git clone https://github.com/YOUR_USERNAME/dotfiles-win.git
