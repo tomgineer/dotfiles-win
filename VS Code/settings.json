@@ -1,0 +1,81 @@
+{
+    "git.ignoreMissingGitWarning": true,
+    "editor.fontSize": 17,
+    "editor.fontLigatures": true,
+    "editor.renderLineHighlight": "none",
+    "workbench.tree.indent": 20,
+    "workbench.startupEditor": "none",
+    "editor.wordWrap": "on",
+    "explorer.confirmDelete": false,
+    "editor.hover.enabled": false,
+    "editor.quickSuggestions": {
+        "comments": false,
+        "other": true,
+        "strings": true
+    },
+    "editor.tabCompletion": "on",
+    "explorer.confirmDragAndDrop": false,
+    "editor.multiCursorModifier": "ctrlCmd",
+    "explorer.copyRelativePathSeparator": "/",
+    "editor.occurrencesHighlight": "off",
+    "editor.detectIndentation": false,
+    "editor.tabSize": 4,
+    "emmet.triggerExpansionOnTab": true,
+    "search.exclude": {
+        "**/*.css": true,
+        "**/*.sql": true,
+        "app/Config/": true,
+        "app/Database/": true,
+        "app/Language/": true,
+        "public/assets": true,
+        "system/": true,
+        "writeable/": true
+    },
+    "security.workspace.trust.untrustedFiles": "open",
+    "extensions.ignoreRecommendations": true,
+    "editor.mouseWheelZoom": true,
+    "files.trimTrailingWhitespace": true,
+    "workbench.settings.applyToAllProfiles": [
+        "editor.fontFamily"
+    ],
+    "editor.fontFamily": "'Fira Code', Consolas, 'Courier New', monospace",
+    "git.decorations.enabled": false,
+    "editor.stickyScroll.enabled": false,
+    "workbench.tree.enableStickyScroll": false,
+    "explorer.compactFolders": false,
+    "workbench.colorTheme": "Monokai",
+    "security.allowedUNCHosts": [
+        "bytebunker"
+    ],
+    "highlight-matching-tag.highlightFromContent": true,
+    "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+    "workbench.editorAssociations": {
+        "*.svg": "default"
+    },
+    "workbench.colorCustomizations": {
+        "tab.activeBackground": "#484a42", // Light gray or change to your preference
+        "tab.activeForeground": "#f8f8f8", // Dark text for contrast
+    },
+    "editor.unicodeHighlight.nonBasicASCII": false,
+    "git.openRepositoryInParentFolders": "never",
+    "chat.commandCenter.enabled": false,
+    "todo-tree.general.tags": [
+        "BUG",
+        "HACK",
+        "FIXME",
+        "TODO",
+        "XXX",
+        "[ ]",
+        "[x]",
+        "FIX"
+    ],
+    "todo-tree.highlights.useColourScheme": true,
+    "php.executablePath": "E:\\xampp\\php\\php.exe",
+    "php.memoryLimit": "16000M",
+    "window.zoomLevel": 0.5,
+    "php.validate.executablePath": "E:\\xampp\\php\\php.exe",
+    "chat.agent.enabled": false,
+    "telemetry.feedback.enabled": false,
+    "chat.notifyWindowOnConfirmation": false,
+
+}
