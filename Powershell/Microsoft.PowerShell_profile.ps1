@@ -1,4 +1,7 @@
-# Load
+# Tom's PowerShell Profile
+# https://github.com/tomgineer/dotfiles-win
+
+# Load Oh My Posh
 oh-my-posh init pwsh --config "C:\Users\tom\AppData\Local\Programs\oh-my-posh\themes\jandedobbeleer.omp.json" | Invoke-Expression
 
 # Remove Aliases
@@ -6,6 +9,8 @@ Remove-Item Alias:\dir -ErrorAction SilentlyContinue
 
 # Aliases
 function dir { eza --icons --group-directories-first @args }
+function cdd { Set-Location .. }
+function cdr { Set-Location / }
 
 # Git Functions
 function gts { git status }
@@ -27,15 +32,31 @@ function mir {
 
 # Config Functions
 function prof { micro $PROFILE }
+function prof-reset { . $PROFILE }
 
 # ImageMagick
 function makeico {
-	$input = $args[0]
-	$output = [System.IO.Path]::ChangeExtension($input, ".ico")
-    magick $input -define icon:auto-resize=256,128,96,64,48,32,24,16 $output
+	param([string]$inputFile)
+	if (-not $inputFile) { Write-Warning 'No input received'; return }
+	$outputFile = [System.IO.Path]::ChangeExtension($inputFile, '.ico')
+	magick "$inputFile" -define icon:auto-resize=256,128,96,64,48,32,24,16 "$outputFile"
 }
 
 # Youtube Downloader
-function get-youtube { yt-dlp --no-playlist --merge-output-format mkv $args[0] }
-function get-playlist { yt-dlp --yes-playlist --merge-output-format mkv $args[0] }
-function get-mp3 { yt-dlp --no-playlist -f bestaudio --extract-audio --audio-format mp3 $args[0] }
+function get-youtube {
+	param([string]$url)
+	if (-not $url) { Write-Warning 'No URL provided'; return }
+	yt-dlp --no-playlist --merge-output-format mkv "$url"
+}
+
+function get-playlist {
+	param([string]$url)
+	if (-not $url) { Write-Warning 'No URL provided'; return }
+	yt-dlp --yes-playlist --merge-output-format mkv "$url"
+}
+
+function get-mp3 {
+	param([string]$url)
+	if (-not $url) { Write-Warning 'No URL provided'; return }
+	yt-dlp --no-playlist -f bestaudio --extract-audio --audio-format mp3 "$url"
+}
