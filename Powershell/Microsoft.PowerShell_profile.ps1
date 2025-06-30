@@ -19,20 +19,32 @@ function gtc { git commit -m "$args" }
 function gtp { git push origin main }
 
 # Navigation Functions
-function lab { cd D:\powershell }
+function lab {
+	Set-Location D:\powershell
+	eza --icons --group-directories-first
+	Write-Host "Welcome to  D:\powershell`n" -ForegroundColor Cyan
+}
+
 function ghub {
 	Set-Location G:\
 	eza --icons --group-directories-first
+	Write-Host "Welcome to my  GitHub Projects`n" -ForegroundColor Cyan
+}
+
+function hdocs {
+	Set-Location E:\xampp\htdocs
+	eza --icons --group-directories-first
+	Write-Host "Welcome to my  Web Server`n" -ForegroundColor Cyan
 }
 
 function mir {
     Set-Location D:\powershell\robocopy
 	./menu.ps1
+	Write-Host "Welcome to my  Backup Operations`n" -ForegroundColor Cyan
 }
 
 # Config Functions
 function prof { micro $PROFILE }
-function prof-reset { . $PROFILE }
 
 # ImageMagick
 function makeico {
