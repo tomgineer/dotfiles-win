@@ -17,6 +17,12 @@ function gts { git status }
 function gta { git add . }
 function gtc { git commit -m "$args" }
 function gtp { git push origin main }
+function gtx {
+	git status
+	git add .
+	git commit -m "Small Fix not worth mentioning.."
+	git push origin main
+}
 
 # Navigation Functions
 function lab {
@@ -54,6 +60,23 @@ function makeico {
 	magick "$inputFile" -define icon:auto-resize=256,128,96,64,48,32,24,16 "$outputFile"
 }
 
+function png2ico {
+    $pngFiles = Get-ChildItem -Path . -Filter *.png -File
+    if ($pngFiles.Count -eq 0) {
+        Write-Warning "No PNG files found in the current directory."
+        return
+    }
+
+    foreach ($file in $pngFiles) {
+        $inputFile = $file.FullName
+        $outputFile = [System.IO.Path]::ChangeExtension($inputFile, '.ico')
+        Write-Host "Converting '$($file.Name)' to '$([System.IO.Path]::GetFileName($outputFile))'..."
+        magick "$inputFile" -define icon:auto-resize=256,128,96,64,48,32,24,16 "$outputFile"
+    }
+
+    Write-Host "Conversion complete."
+}
+
 # Youtube Downloader
 function get-youtube {
 	param([string]$url)
@@ -72,3 +95,30 @@ function get-mp3 {
 	if (-not $url) { Write-Warning 'No URL provided'; return }
 	yt-dlp --no-playlist -f bestaudio --extract-audio --audio-format mp3 "$url"
 }
+
+# Explorer Functions
+function open-profile {
+	explorer "$HOME\Documents\PowerShell"
+}
+
+# File Functions
+
+## Renames all files with the given extension in the current folder using an incremental number and a custom prefix.
+## Usage: rename png spaceman
+function rename {
+	param($Extension, $Prefix)
+	$files = Get-ChildItem -Path . -Filter "*.$Extension" -File | Sort-Object Name
+	$counter = 1
+	foreach ($file in $files) {
+		$newName = "$Prefix" + "_" + $counter + "." + $Extension
+
+        if ($file.Name -ne $newName) {
+			Write-Host "Renaming '$($file.Name)' to '$newName'"
+			Rename-Item -Path $file.FullName -NewName $newName
+        }
+	$counter++	
+	}
+}
+
+# Load startup.ps1 from the same directory
+. (Join-Path $HOME "Documents\PowerShell\Init_powershell.ps1")
