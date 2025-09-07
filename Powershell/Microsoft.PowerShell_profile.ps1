@@ -23,6 +23,7 @@ function gtx {
 	git commit -m "Small Fix not worth mentioning.."
 	git push origin main
 }
+function git-restore { git reset --hard}
 
 # Navigation Functions
 function lab {
@@ -47,6 +48,11 @@ function mir {
     Set-Location D:\powershell\robocopy
 	./menu.ps1
 	Write-Host "Welcome to my  Backup Operations`n" -ForegroundColor Cyan
+}
+
+function music {
+	Set-Location M:\mp3\renaissance
+	eza --icons --group-directories-first
 }
 
 # Config Functions
@@ -120,5 +126,57 @@ function rename {
 	}
 }
 
+# Cargo (Rust)
+function cr {
+	cargo run
+}
+
+function cbr {
+	cargo build --release	
+}
+
 # Load startup.ps1 from the same directory
 . (Join-Path $HOME "Documents\PowerShell\Init_powershell.ps1")
+
+
+# Mirror To External USB Drive
+function mir-ext {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Source,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Destination
+    )
+
+    # Exclude lists
+    $excludeDirs  = @('$RECYCLE.BIN', 'System Volume Information', 'tmp', 'cache')
+    $excludeFiles = @('pagefile.sys', 'hiberfil.sys', 'swapfile.sys')
+
+    # Base robocopy args
+    $robocopyArgs = @(
+        $Source
+        $Destination
+        '/MIR'
+        '/Z'
+        '/R:3'
+        '/W:5'
+        '/MT:8'
+        '/XA:SH'
+        '/A-:SH'
+    )
+
+    # Exclude dirs
+    foreach ($dir in $excludeDirs) {
+        $robocopyArgs += '/XD'
+        $robocopyArgs += (Join-Path $Source $dir)
+    }
+
+    # Exclude files
+    foreach ($file in $excludeFiles) {
+        $robocopyArgs += '/XF'
+        $robocopyArgs += (Join-Path $Source $file)
+    }
+
+    robocopy @robocopyArgs
+}
