@@ -14,55 +14,66 @@ function script:Invoke-RoboMirror {
         [string]$Destination,
 
         [Parameter(Mandatory = $true)]
-        [string]$User,
-
-        [Parameter(Mandatory = $true)]
         [string]$LogName,
-
-        [string]$LogDir = 'D:\powershell\robocopy\logs',
-
-        [string[]]$ExcludeDirs = @('$RECYCLE.BIN', 'System Volume Information'),
-
-        [string[]]$ExcludeFiles = @('pagefile.sys', 'hiberfil.sys', 'swapfile.sys'),
 
         [string[]]$ExtraExcludeDirs = @()
     )
+
+    # Define NAS connection details
+    $NAS         = '\\bytebunker'
+    $User        = 'tom'
+
+    # Read password from env file in the same directory as the script
+    $EnvFile = Join-Path $PSScriptRoot 'env'
+    $Passwd  = Get-Content -LiteralPath $EnvFile -Raw
+
+    # Log Directory
+    $LogDir = 'D:\powershell\robocopy\logs'
+
+    # Directories and files to exclude
+    $excludeDirs  = @('$RECYCLE.BIN', 'System Volume Information')
+    $excludeFiles = @('pagefile.sys', 'hiberfil.sys', 'swapfile.sys')
 
     # Ensure log directory exists
     if (-not (Test-Path -LiteralPath $LogDir)) {
         New-Item -ItemType Directory -Path $LogDir | Out-Null
     }
 
+    # Define log file path
     $timestamp = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'
     $log = Join-Path $LogDir "${LogName}_$timestamp.txt"
 
-    # Connect using stored credentials (no password in script)
-    net use $Destination /user:$User | Out-Null
+    # Connect to NAS share with credentials (net use is a legacy cmd utility, works here for quick access)
+    net use $NAS /user:$User $Passwd
 
+    # Build Robocopy command arguments as an array
     $robocopyArgs = @(
-        $Source
-        $Destination
-        '/MIR'
-        '/Z'
-        '/R:3'
-        '/W:5'
-        '/MT:8'
-        '/XA:SH'
-        '/A-:SH'
-        '/TEE'
-        "/LOG:$log"
+        $source
+        $destination
+        '/MIR'         # Mirror source to destination (includes deletions)
+        '/Z'           # Restartable mode
+        '/R:3'         # Retry 3 times on failed copies
+        '/W:5'         # Wait 5 seconds between retries
+        '/MT:8'        # Use 8 threads (multithreaded copy)
+        '/XA:SH'       # Exclude hidden and system files
+        '/A-:SH'       # Don't set hidden/system attributes on destination
+        '/TEE'         # Output to console and log file
+        "/LOG:$log"    # Log file path
     )
 
-    foreach ($dir in $ExcludeDirs) {
+    # Add excluded directories with full paths based on $source
+    foreach ($dir in $excludeDirs) {
         $robocopyArgs += '/XD'
-        $robocopyArgs += (Join-Path $Source $dir)
+        $robocopyArgs += (Join-Path $source $dir)
     }
 
+    # Add extra excluded directories with full paths based on $source
     foreach ($dir in $ExtraExcludeDirs) {
         $robocopyArgs += '/XD'
         $robocopyArgs += $dir
     }
 
+    # Add excluded files with full paths based on $source
     foreach ($file in $ExcludeFiles) {
         $robocopyArgs += '/XF'
         $robocopyArgs += (Join-Path $Source $file)
@@ -72,9 +83,13 @@ function script:Invoke-RoboMirror {
     $rc = $LASTEXITCODE
 
     if ($rc -ge 8) {
-        Write-Error "Robocopy failed (exit code: $rc). Log: $log"
+        Write-Error "Robocopy FAILED. Errors occurred during copy. Exit code: $rc`nLog: $log"
+    } elseif ($rc -eq 0) {
+        Write-Host "Robocopy completed. No changes were needed." -ForegroundColor Green
+        Write-Host "Log: $log" -ForegroundColor DarkGray
     } else {
-        Write-Host "Robocopy finished (exit code: $rc). Log: $log"
+        Write-Host "Robocopy completed successfully with changes." -ForegroundColor Green
+        Write-Host "Exit code: $rc | Log: $log" -ForegroundColor DarkGray
     }
 }
 
@@ -82,7 +97,6 @@ function mir-data {
     Invoke-RoboMirror `
         -Source 'D:\' `
         -Destination '\\bytebunker\drives\data' `
-        -User 'tom' `
         -LogName 'log_drive_data'
 }
 
@@ -90,7 +104,6 @@ function mir-ai {
     Invoke-RoboMirror `
         -Source 'X:\' `
         -Destination '\\bytebunker\drives\ai' `
-        -User 'tom' `
         -LogName 'log_drive_ai' `
         -ExtraExcludeDirs @('snapshots', 'tmp', 'cache')
 }
@@ -99,7 +112,6 @@ function mir-github {
     Invoke-RoboMirror `
         -Source 'G:\' `
         -Destination '\\bytebunker\drives\github' `
-        -User 'tom' `
         -LogName 'log_drive_github' `
         -ExtraExcludeDirs @('snapshots')
 }
@@ -108,7 +120,6 @@ function mir-media {
     Invoke-RoboMirror `
         -Source 'M:\' `
         -Destination '\\bytebunker\drives\media' `
-        -User 'tom' `
         -LogName 'log_drive_media'
 }
 
@@ -116,7 +127,6 @@ function mir-webserver {
     Invoke-RoboMirror `
         -Source 'E:\' `
         -Destination '\\bytebunker\drives\webserver' `
-        -User 'tom' `
         -LogName 'log_drive_webserver' `
         -ExtraExcludeDirs @(
             'xampp\tmp',
@@ -149,18 +159,19 @@ function script:Invoke-RoboSyncLocal {
     $timestamp = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'
     $log = Join-Path $LogDir "${LogName}_$timestamp.txt"
 
+
     $robocopyArgs = @(
         $Source
         $Destination
-        '/S'           # Copy subdirectories, not empty ones
-        '/Z'
-        '/R:3'
-        '/W:5'
-        '/MT:8'
-        '/XA:SH'
-        '/A-:SH'
-        '/TEE'
-        "/LOG:$log"
+        '/S'           # Copy subdirectories (excluding empty ones)
+        '/Z'           # Restartable mode
+        '/R:3'         # Retry 3 times on failed copies
+        '/W:5'         # Wait 5 seconds between retries
+        '/MT:8'        # Use 8 threads (multithreaded copy)
+        '/XA:SH'       # Exclude hidden and system files
+        '/A-:SH'       # Don't set hidden/system attributes on destination
+        '/TEE'         # Output to console and log file
+        "/LOG:$log"    # Log file path
     )
 
     robocopy @robocopyArgs
