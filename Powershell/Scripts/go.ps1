@@ -15,6 +15,8 @@ function go {
         power   = 'D:\powershell'
         icons   = 'G:\iconium\png'
         web     = 'E:\xampp\htdocs'
+        scripts = 'G:\dotfiles-win'
+        home    = 'D:\'
         profile = "$HOME\Documents\PowerShell"
     }
 

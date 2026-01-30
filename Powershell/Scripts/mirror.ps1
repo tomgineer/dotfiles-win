@@ -87,6 +87,8 @@ function script:Invoke-RoboMirror {
         '/XA:SH'       # Exclude hidden and system files
         '/A-:SH'       # Don't set hidden/system attributes on destination
         '/TEE'         # Output to console and log file
+        '/XJD'         # Exclude Junction Points for Directories. (Prevents infinite loops!)
+        '/XJF'         # Exclude Junction Points for Files.
         "/LOG:$log"    # Log file path
     )
 
