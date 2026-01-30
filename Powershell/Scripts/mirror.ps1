@@ -41,8 +41,8 @@ function script:Invoke-RoboMirror {
     $LogDir = 'D:\powershell\.logs'
 
     # Directories and files to exclude
-    $excludeDirs  = @('$RECYCLE.BIN', 'System Volume Information')
-    $excludeFiles = @('pagefile.sys', 'hiberfil.sys', 'swapfile.sys')
+    $ExcludeDirs  = @('$RECYCLE.BIN', 'System Volume Information')
+    $ExcludeFiles = @('pagefile.sys', 'hiberfil.sys', 'swapfile.sys')
 
     # Ensure log directory exists
     if (-not (Test-Path -LiteralPath $LogDir)) {
@@ -58,8 +58,8 @@ function script:Invoke-RoboMirror {
 
     # Build Robocopy command arguments as an array
     $robocopyArgs = @(
-        $source
-        $destination
+        $Source
+        $Destination
         '/MIR'         # Mirror source to destination (includes deletions)
         '/Z'           # Restartable mode
         '/R:3'         # Retry 3 times on failed copies
@@ -71,23 +71,34 @@ function script:Invoke-RoboMirror {
         "/LOG:$log"    # Log file path
     )
 
-    # Add excluded directories with full paths based on $source
-    foreach ($dir in $excludeDirs) {
-        $robocopyArgs += '/XD'
-        $robocopyArgs += (Join-Path $source $dir)
+    # Process Excluded Directories
+    $DirExclusions = @()
+    # Add system-style exclusions with full paths
+    foreach ($dir in $ExcludeDirs) {
+        $DirExclusions += Join-Path $Source $dir
+    }
+    # Add custom exclusions (like .git)
+    if ($ExtraExcludeDirs) {
+        $DirExclusions += $ExtraExcludeDirs
     }
 
-    # Add extra excluded directories with full paths based on $source
-    foreach ($dir in $ExtraExcludeDirs) {
+    # Apply all Directory exclusions under a single /XD flag
+    if ($DirExclusions.Count -gt 0) {
         $robocopyArgs += '/XD'
-        $robocopyArgs += $dir
+        $robocopyArgs += $DirExclusions
     }
 
-    # Add excluded files with full paths based on $source
-    foreach ($file in $ExcludeFiles) {
+    # Process and apply File exclusions under a single /XF flag
+    if ($ExcludeFiles.Count -gt 0) {
         $robocopyArgs += '/XF'
-        $robocopyArgs += (Join-Path $Source $file)
+        # Pass the array directly; Robocopy will exclude these filenames
+        # wherever they appear within your source directory.
+        $robocopyArgs += $ExcludeFiles
     }
+
+    # Display Args
+    Write-Host "`n 󰖃 Running Robocopy with arguments:" -ForegroundColor Cyan
+    Write-Host "robocopy $($robocopyArgs -join ' ')`n" -ForegroundColor Blue
 
     robocopy @robocopyArgs
     $rc = $LASTEXITCODE
@@ -135,15 +146,10 @@ function mir-media {
 
 function mir-webserver {
     Invoke-RoboMirror `
-        -Source 'E:\' `
+        -Source 'E:\xampp\htdocs' `
         -Destination '\\bytebunker\drives\webserver' `
         -LogName 'log_drive_webserver' `
-        -ExtraExcludeDirs @(
-            'xampp\tmp',
-            'xampp\perl\tmp',
-            'xampp\apache\logs',
-            'xampp\mysql\data\performance_schema'
-        )
+        -ExtraExcludeDirs @('.git')
 }
 
 # ------------------------------------------------------------------------------
