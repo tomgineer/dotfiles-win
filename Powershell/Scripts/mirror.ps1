@@ -2,9 +2,19 @@
 # Add credentials to Windows Credential Manager (one-time setup):
 #   cmdkey /add:bytebunker /user:tom /pass
 
-
-# Internal helper that mirrors a local source to a NAS destination using Robocopy.
-# Uses stored Windows Credential Manager credentials and /MIR (includes deletions).
+# ------------------------------------------------------------------------------
+# ROBOCOPY MIRROR ENGINE (NAS)
+#
+# Low-level mirror function for syncing data to the NAS using robocopy /MIR.
+#
+# - Establishes a temporary connection to the NAS share
+# - Performs a destructive mirror (includes deletions on destination)
+# - Applies standard system exclusions plus optional extra directories
+# - Writes detailed logs for auditing and troubleshooting
+#
+# WARNING:
+# Uses robocopy /MIR. Files deleted at the source will be deleted on the NAS.
+# ------------------------------------------------------------------------------
 function script:Invoke-RoboMirror {
     param(
         [Parameter(Mandatory = $true)]
@@ -28,7 +38,7 @@ function script:Invoke-RoboMirror {
     $Passwd  = Get-Content -LiteralPath $EnvFile -Raw
 
     # Log Directory
-    $LogDir = 'D:\powershell\robocopy\logs'
+    $LogDir = 'D:\powershell\.logs'
 
     # Directories and files to exclude
     $excludeDirs  = @('$RECYCLE.BIN', 'System Volume Information')
@@ -136,10 +146,24 @@ function mir-webserver {
         )
 }
 
-# Internal helper that synchronizes local directories on the same system.
-# Uses Robocopy with /S (no deletions) and does not perform any authentication.
-function script:Invoke-RoboSyncLocal {
+# ------------------------------------------------------------------------------
+# ROBOCOPY LOCAL SYNC / MIRROR ENGINE
+#
+# Core robocopy wrapper for local filesystem operations.
+#
+# - Supports copy (non-destructive) and mirror (destructive) modes
+# - Used by higher-level helper and menu functions
+# - Provides consistent logging, retry logic, and console output
+#
+# NOTE:
+# Mirror mode uses robocopy /MIR and may delete files in the destination.
+# ------------------------------------------------------------------------------
+function script:Invoke-RoboLocal {
     param(
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('copy', 'mirror')]
+        [string]$Mode, # 'copy' or 'mirror'
+
         [Parameter(Mandatory = $true)]
         [string]$Source,
 
@@ -149,7 +173,7 @@ function script:Invoke-RoboSyncLocal {
         [Parameter(Mandatory = $true)]
         [string]$LogName,
 
-        [string]$LogDir = 'D:\powershell\robocopy\logs'
+        [string]$LogDir = 'D:\powershell\.logs'
     )
 
     if (-not (Test-Path -LiteralPath $LogDir)) {
@@ -159,11 +183,7 @@ function script:Invoke-RoboSyncLocal {
     $timestamp = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'
     $log = Join-Path $LogDir "${LogName}_$timestamp.txt"
 
-
-    $robocopyArgs = @(
-        $Source
-        $Destination
-        '/S'           # Copy subdirectories (excluding empty ones)
+    $commonArgs = @(
         '/Z'           # Restartable mode
         '/R:3'         # Retry 3 times on failed copies
         '/W:5'         # Wait 5 seconds between retries
@@ -172,6 +192,19 @@ function script:Invoke-RoboSyncLocal {
         '/A-:SH'       # Don't set hidden/system attributes on destination
         '/TEE'         # Output to console and log file
         "/LOG:$log"    # Log file path
+    )
+
+    # Mode-specific options
+    $modeArgs = switch ($Mode) {
+        'copy'   { @('/S') }     # Copy subdirectories (excluding empty ones)
+        'mirror' { @('/MIR') }   # Mirror source to destination
+    }
+
+    $robocopyArgs = @(
+        $Source
+        $Destination
+        $modeArgs
+        $commonArgs
     )
 
     robocopy @robocopyArgs
@@ -186,25 +219,62 @@ function script:Invoke-RoboSyncLocal {
 
 function mir-ai-media {
     # Forge: txt2img output -> media library
-    Invoke-RoboSyncLocal `
+    Invoke-RoboLocal `
+        -Mode 'copy' `
         -Source 'X:\apps\forge\webui\outputs\txt2img-images' `
         -Destination 'X:\media\forge' `
-        -LogName 'sync_ai_forge'
+        -LogName 'copy_ai_forge'
 
     # Z-Image: ComfyUI output -> media library
-    Invoke-RoboSyncLocal `
+    Invoke-RoboLocal `
+        -Mode 'copy' `
         -Source 'X:\apps\comfy_ui\ComfyUI\output\Z-Image' `
         -Destination 'X:\media\z_image' `
-        -LogName 'sync_ai_z_image'
+        -LogName 'copy_ai_z_image'
 
     # WAN: outputs -> media library
-    Invoke-RoboSyncLocal `
+    Invoke-RoboLocal `
+        -Mode 'copy' `
         -Source 'X:\apps\wan2gp\outputs' `
         -Destination 'X:\media\wan' `
-        -LogName 'sync_ai_wan'
+        -LogName 'copy_ai_wan'
 }
 
-# Menu Function
+function mir-ext {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Source,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Destination,
+
+        [string]$LogName = 'mirror_external'
+    )
+
+    Invoke-RoboLocal `
+        -Mode 'mirror' `
+        -Source $Source `
+        -Destination $Destination `
+        -LogName $LogName
+}
+
+function mir-scripts {
+    Invoke-RoboLocal `
+        -Mode 'mirror' `
+        -Source 'D:\powershell\.scripts' `
+        -Destination 'G:\dotfiles-win\Powershell\Scripts' `
+        -LogName 'mirror_powershell_scripts'
+}
+
+# ------------------------------------------------------------------------------
+# MIRROR JOB SELECTOR
+#
+# Central menu for all mirror operations.
+# Run individual jobs or execute all in the defined order.
+#
+# WARNING:
+# Some jobs use /MIR and may delete files on the destination.
+# ------------------------------------------------------------------------------
 function mir {
     $options = @(
         [PSCustomObject]@{ Name = 'mir-ai-media';   Desc = 'Local sync AI outputs into X:\media (no deletions, local only)';       Action = { mir-ai-media } }
@@ -273,6 +343,4 @@ function mir {
 
     & $selected.Action
 }
-
-
 

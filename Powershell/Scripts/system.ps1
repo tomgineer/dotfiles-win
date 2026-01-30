@@ -19,7 +19,6 @@ function dir {
 # Lists user-defined interactive functions.
 # Scans profile and custom scripts directory.
 function hero {
-    Write-Host "󰡱 Available Custom Functions" -ForegroundColor Cyan
 
     $scriptRoot = "D:\powershell\.scripts"
 
@@ -42,7 +41,22 @@ function hero {
         return
     }
 
-    Write-Host ($functions -join "  ") -ForegroundColor Green
+    Write-Host "󰡱 Available Custom Functions" -ForegroundColor Cyan
+
+    $i = 0
+    foreach ($item in $functions) {
+        Write-Host "    " -ForegroundColor DarkBlue -NoNewline
+        Write-Host ("{0,-20}" -f $item) -ForegroundColor Blue -NoNewline
+
+        $i++
+        # Every 5 items, start a new line
+        if ($i % 5 -eq 0) { Write-Host "" }
+    }
+
+    Write-Host ""
+    Write-Host ""
+    Write-Host " Folders" -ForegroundColor Cyan
+    eza --icons --group-directories-first --color=always --git --header
     Write-Host ""
 }
 

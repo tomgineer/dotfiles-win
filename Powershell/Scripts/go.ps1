@@ -14,7 +14,7 @@ function go {
         git     = 'G:\'
         power   = 'D:\powershell'
         icons   = 'G:\iconium\png'
-        hdocs   = 'E:\xampp\htdocs'
+        web     = 'E:\xampp\htdocs'
         profile = "$HOME\Documents\PowerShell"
     }
 
