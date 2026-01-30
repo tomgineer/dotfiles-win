@@ -40,9 +40,28 @@ function script:Invoke-RoboMirror {
     # Log Directory
     $LogDir = 'D:\powershell\.logs'
 
-    # Directories and files to exclude
-    $ExcludeDirs  = @('$RECYCLE.BIN', 'System Volume Information')
-    $ExcludeFiles = @('pagefile.sys', 'hiberfil.sys', 'swapfile.sys')
+    # Expanded Directory Exclusions
+    $ExcludeDirs  = @(
+        '$RECYCLE.BIN',
+        'System Volume Information',
+        'Temp',
+        'Cache',
+        'Config.Msi',
+        'Package Cache',
+        'Windows\Logs'
+    )
+
+    # Expanded File Exclusions (Garbage/Lock files)
+    $ExcludeFiles = @(
+        'pagefile.sys',
+        'hiberfil.sys',
+        'swapfile.sys',
+        '*.tmp',
+        '*.log',
+        'thumbs.db',
+        'desktop.ini',
+        '*.lock'
+    )
 
     # Ensure log directory exists
     if (-not (Test-Path -LiteralPath $LogDir)) {
@@ -77,10 +96,14 @@ function script:Invoke-RoboMirror {
     foreach ($dir in $ExcludeDirs) {
         $DirExclusions += Join-Path $Source $dir
     }
+
     # Add custom exclusions (like .git)
     if ($ExtraExcludeDirs) {
         $DirExclusions += $ExtraExcludeDirs
     }
+
+    # Wrap paths in double quotes only if they contain spaces
+    $DirExclusions = $DirExclusions | ForEach-Object { if ($_ -match ' ') { '"{0}"' -f $_ } else { $_ } }
 
     # Apply all Directory exclusions under a single /XD flag
     if ($DirExclusions.Count -gt 0) {
