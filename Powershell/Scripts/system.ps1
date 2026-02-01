@@ -57,7 +57,6 @@ function hero {
     Write-Host ""
     Write-Host " Folders" -ForegroundColor Cyan
     eza --icons --group-directories-first --color=always --git --header
-    Write-Host ""
 }
 
 # Windows icon and thumbnail cache helper.

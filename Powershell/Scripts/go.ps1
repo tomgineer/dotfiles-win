@@ -50,5 +50,4 @@ function go {
 
     Clear-Host
     eza --icons --group-directories-first --color=always --git --header
-    Write-Host ""
 }
