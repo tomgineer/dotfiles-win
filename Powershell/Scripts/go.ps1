@@ -18,6 +18,7 @@ function go {
         scripts = 'G:\dotfiles-win'
         home    = 'D:\'
         profile = "$HOME\Documents\PowerShell"
+        comfy   = "C:\Users\tom\Documents\ComfyUI\models"
     }
 
     # No argument: show targets

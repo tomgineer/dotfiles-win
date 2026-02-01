@@ -259,8 +259,8 @@ function mir-ai-media {
     # Z-Image: ComfyUI output -> media library
     Invoke-RoboLocal `
         -Mode 'copy' `
-        -Source 'X:\apps\comfy_ui\ComfyUI\output\Z-Image' `
-        -Destination 'X:\media\z_image' `
+        -Source 'C:\Users\tom\Documents\ComfyUI\output' `
+        -Destination 'X:\media\comfy_ui' `
         -LogName 'copy_ai_z_image'
 
     # WAN: outputs -> media library

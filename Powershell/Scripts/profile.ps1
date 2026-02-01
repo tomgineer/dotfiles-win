@@ -11,10 +11,10 @@
 
 function profile {
     # Attempt to locate Notepad++ in PATH
-    $npp = (Get-Command notepad++.exe -ErrorAction SilentlyContinue).Source
+    $npp = (Get-Command notepads -ErrorAction SilentlyContinue).Source
 
     if (-not $npp) {
-        Write-Warning "notepad++.exe not found in PATH. Using Notepad instead."
+        Write-Warning "Notepads App not found in PATH. Using Notepad instead."
         notepad $PROFILE
         return
     }
