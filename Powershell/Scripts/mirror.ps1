@@ -185,6 +185,7 @@ function mir-webserver {
 # - Supports copy (non-destructive) and mirror (destructive) modes
 # - Used by higher-level helper and menu functions
 # - Provides consistent logging, retry logic, and console output
+# - Applies standard system exclusions
 #
 # NOTE:
 # Mirror mode uses robocopy /MIR and may delete files in the destination.
@@ -214,6 +215,29 @@ function script:Invoke-RoboLocal {
     $timestamp = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'
     $log = Join-Path $LogDir "${LogName}_$timestamp.txt"
 
+    # Expanded Directory Exclusions
+    $ExcludeDirs  = @(
+        '$RECYCLE.BIN',
+        'System Volume Information',
+        'Temp',
+        'Cache',
+        'Config.Msi',
+        'Package Cache',
+        'Windows\Logs'
+    )
+
+    # Expanded File Exclusions (Garbage/Lock files)
+    $ExcludeFiles = @(
+        'pagefile.sys',
+        'hiberfil.sys',
+        'swapfile.sys',
+        '*.tmp',
+        '*.log',
+        'thumbs.db',
+        'desktop.ini',
+        '*.lock'
+    )
+
     $commonArgs = @(
         '/Z'           # Restartable mode
         '/R:3'         # Retry 3 times on failed copies
@@ -237,6 +261,27 @@ function script:Invoke-RoboLocal {
         $modeArgs
         $commonArgs
     )
+
+    # Process Excluded Directories (full paths under source)
+    $DirExclusions = @()
+    foreach ($dir in $ExcludeDirs) {
+        $DirExclusions += Join-Path $Source $dir
+    }
+
+    # Wrap paths in double quotes only if they contain spaces
+    $DirExclusions = $DirExclusions | ForEach-Object { if ($_ -match ' ') { '"{0}"' -f $_ } else { $_ } }
+
+    # Apply all Directory exclusions under a single /XD flag
+    if ($DirExclusions.Count -gt 0) {
+        $robocopyArgs += '/XD'
+        $robocopyArgs += $DirExclusions
+    }
+
+    # Process and apply File exclusions under a single /XF flag
+    if ($ExcludeFiles.Count -gt 0) {
+        $robocopyArgs += '/XF'
+        $robocopyArgs += $ExcludeFiles
+    }
 
     robocopy @robocopyArgs
     $rc = $LASTEXITCODE

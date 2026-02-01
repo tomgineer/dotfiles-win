@@ -4,7 +4,7 @@
 # If called without arguments, it lists all available targets.
 # After navigation, it clears the screen and lists directory contents.
 
-function go {
+function goto {
     param(
         [Parameter(Position = 0)]
         [string]$Target
@@ -24,7 +24,7 @@ function go {
     # No argument: show targets
     if (-not $Target) {
         Write-Host ""
-        Write-Host "󰈔 go targets" -ForegroundColor Cyan
+        Write-Host "󰈔 goto targets" -ForegroundColor Cyan
         Write-Host ""
 
         foreach ($k in $targets.Keys) {
@@ -33,7 +33,7 @@ function go {
         }
 
         Write-Host ""
-        Write-Host "Usage: go <target>" -ForegroundColor DarkGray
+        Write-Host "Usage: goto <target>" -ForegroundColor DarkGray
         Write-Host ""
         return
     }
@@ -42,7 +42,7 @@ function go {
 
     if (-not $targets.Contains($key)) {
         Write-Warning "Unknown target: $Target"
-        Write-Host "Run 'go' to list available targets." -ForegroundColor DarkGray
+        Write-Host "Run 'goto' to list available targets." -ForegroundColor DarkGray
         return
     }
 
