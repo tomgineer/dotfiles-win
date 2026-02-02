@@ -83,3 +83,8 @@ function reb-cache {
 
     Write-Host "Icon cache rebuild triggered." -ForegroundColor Green
 }
+
+# Power off system immediately
+function halt {
+    shutdown /s /t 0
+}

@@ -301,12 +301,12 @@ function mir-ai-media {
         -Destination 'X:\media\forge' `
         -LogName 'copy_ai_forge'
 
-    # Z-Image: ComfyUI output -> media library
+    # ComfyUI: ComfyUI output -> media library
     Invoke-RoboLocal `
         -Mode 'copy' `
-        -Source 'C:\Users\tom\Documents\ComfyUI\output' `
+        -Source 'X:\apps\comfy_ui\ComfyUI\output' `
         -Destination 'X:\media\comfy_ui' `
-        -LogName 'copy_ai_z_image'
+        -LogName 'copy_ai_comfy_ui'
 
     # WAN: outputs -> media library
     Invoke-RoboLocal `
