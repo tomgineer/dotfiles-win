@@ -15,10 +15,18 @@ function dir {
     }
 }
 
+# Powershell StartUp
+# If locked: Unblock-File $PROFILE
+function startup {
+    Write-Host ""
+    Write-Host " Folders" -ForegroundColor Cyan
+    eza --icons --group-directories-first --color=always --git --header
+}
+
 # Custom command overview.
 # Lists user-defined interactive functions.
 # Scans profile and custom scripts directory.
-function hero {
+function tools {
 
     $scriptRoot = "D:\powershell\.scripts"
 
@@ -41,6 +49,7 @@ function hero {
         return
     }
 
+    Write-Host ""
     Write-Host "󰡱 Available Custom Functions" -ForegroundColor Cyan
 
     $i = 0
@@ -54,9 +63,6 @@ function hero {
     }
 
     Write-Host ""
-    Write-Host ""
-    Write-Host " Folders" -ForegroundColor Cyan
-    eza --icons --group-directories-first --color=always --git --header
 }
 
 # Windows icon and thumbnail cache helper.
@@ -87,4 +93,19 @@ function reb-cache {
 # Power off system immediately
 function halt {
     shutdown /s /t 0
+}
+
+# Displays a table with all available functions in this project (Not Helper Functions) in one column grouped by functionality, in the third column it displays a short explanation what this function does, a second column shows the syntax. The table is nice taking the colors from the function tools and uses nerd fonts.
+function info {
+
+    $infoPath = Join-Path $PSScriptRoot ".info"
+
+    if (-not (Test-Path -LiteralPath $infoPath)) {
+        Write-Warning "Info table not found: $infoPath"
+        return
+    }
+
+    Write-Host ""
+    Write-Host (Get-Content -LiteralPath $infoPath -Raw) -ForegroundColor Blue -NoNewline
+    Write-Host ""
 }

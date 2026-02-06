@@ -34,7 +34,7 @@ function script:Invoke-RoboMirror {
     $User        = 'tom'
 
     # Read password from env file in the same directory as the script
-    $EnvFile = Join-Path $PSScriptRoot 'env'
+    $EnvFile = Join-Path $PSScriptRoot '.env'
     $Passwd  = Get-Content -LiteralPath $EnvFile -Raw
 
     # Log Directory

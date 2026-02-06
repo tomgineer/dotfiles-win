@@ -1,0 +1,58 @@
+┌────────────────────┬──────────────────────────────────────────────┬────────────────────────────────────────────────────────────────┐
+│ Function           │ Syntax                                       │ Description                                                    │
+├────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────┤
+│ # System           │                                              │                                                                │
+│ dir                │ dir                                          │ List directory using eza if available.                         │
+│ startup            │ startup                                      │ Show startup header and directory listing.                     │
+│ tools              │ tools                                        │ List custom functions from profile and scripts.                │
+│ reb-cache          │ reb-cache                                    │ Rebuild Windows icon and thumbnail caches.                     │
+│ halt               │ halt                                         │ Shut down the system immediately.                              │
+│ info               │ info                                         │ Show this functions overview table.                            │
+├────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────┤
+│ # Navigation       │                                              │                                                                │
+│ goto               │ goto [target]                                │ Jump to a named location and list files.                       │
+├────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────┤
+│ # Git              │                                              │                                                                │
+│ gts                │ gts                                          │ git status                                                     │
+│ gta                │ gta                                          │ git add .                                                      │
+│ gtc                │ gtc <message>                                │ git commit -m "<message>"                                      │
+│ gtp                │ gtp                                          │ git push origin main                                           │
+│ gtx                │ gtx                                          │ Status → add → commit → push (generic message).                │
+│ git-reset          │ git-reset                                    │ DANGEROUS: git reset --hard (discard local changes).           │
+├────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────┤
+│ # Profile          │                                              │                                                                │
+│ profile            │ profile                                      │ Open $PROFILE in Notepad.                                      │
+│ reload             │ reload                                       │ Reload the PowerShell profile.                                 │
+│ profile-location   │ profile-location                             │ Open the profile folder in Explorer.                           │
+├────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────┤
+│ # Media            │                                              │                                                                │
+│ videothumbs        │ videothumbs                                  │ Generate webp thumbnails for video files.                      │
+│ videometa          │ videometa                                    │ Create JSON metadata for videos in current folder.             │
+├────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────┤
+│ # Images           │                                              │                                                                │
+│ makeico            │ makeico <InputFile>                          │ Create a multi-resolution .ico using ImageMagick.              │
+│ remove-meta        │ remove-meta <File>                           │ Strip all metadata from an image (exiftool).                   │
+│ dim                │ dim                                          │ Show common image dimensions by aspect ratio.                  │
+├────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────┤
+│ # Rename           │                                              │                                                                │
+│ rename             │ rename <Extension> <Prefix>                  │ Rename files sequentially with a prefix.                       │
+├────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────┤
+│ # Archiving        │                                              │                                                                │
+│ rarit              │ rarit                                        │ RAR current folder (excluding hidden items).                   │
+├────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────┤
+│ # YouTube          │                                              │                                                                │
+│ get-youtube        │ get-youtube <url>                            │ Download a single YouTube video (best streams).                │
+│ get-playlist       │ get-playlist <url>                           │ Download a YouTube playlist as MKV files.                      │
+│ get-mp3            │ get-mp3 <url>                                │ Download YouTube audio as MP3.                                 │
+├────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────┤
+│ # Mirror           │                                              │                                                                │
+│ mir                │ mir                                          │ Interactive menu for mirror jobs.                              │
+│ mir-data           │ mir-data                                     │ Mirror D:\ to NAS drives\data (destructive).                   │
+│ mir-ai             │ mir-ai                                       │ Mirror X:\ to NAS drives\ai (excludes tmp/cache).              │
+│ mir-github         │ mir-github                                   │ Mirror G:\ to NAS drives\github.                               │
+│ mir-media          │ mir-media                                    │ Mirror M:\ to NAS drives\media.                                │
+│ mir-webserver      │ mir-webserver                                │ Mirror E:\xampp\htdocs to NAS.                                 │
+│ mir-ai-media       │ mir-ai-media                                 │ Copy AI outputs into X:\media (non-destructive).               │
+│ mir-ext            │ mir-ext <Source> <Destination> [LogName]     │ Mirror any source to destination (destructive).                │
+│ mir-scripts        │ mir-scripts                                  │ Mirror scripts to dotfiles repo.                               │
+└────────────────────┴──────────────────────────────────────────────┴────────────────────────────────────────────────────────────────┘
