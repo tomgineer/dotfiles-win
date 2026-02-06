@@ -1,21 +1,23 @@
-# git.ps1
-#
-# Small Git helper functions for daily work.
-# Designed to be dot-sourced from the PowerShell profile.
-# All functions wrap common git commands with short names.
-
-# git status
+<#
+.SYNOPSIS
+Shows the current Git working tree status.
+#>
 function gts {
     git status
 }
 
-# git add .
+<#
+.SYNOPSIS
+Stages all current changes in the repository.
+#>
 function gta {
     git add .
 }
 
-# git commit -m "<message>"
-# Accepts quoted or unquoted messages
+<#
+.SYNOPSIS
+Creates a commit using the provided message text.
+#>
 function gtc {
     if (-not $args) {
         Write-Warning "Commit message required"
@@ -25,14 +27,18 @@ function gtc {
     git commit -m ($args -join ' ')
 }
 
-# git push origin main
+<#
+.SYNOPSIS
+Pushes the current local branch state to origin/main.
+#>
 function gtp {
     git push origin main
 }
 
-# Quick workflow:
-# status -> add -> commit -> push
-# Uses a generic commit message
+<#
+.SYNOPSIS
+Runs status, add, commit, and push with a default commit message.
+#>
 function gtx {
     git status
     git add .
@@ -40,9 +46,10 @@ function gtx {
     git push origin main
 }
 
-# DANGEROUS:
-# Resets the current branch to HEAD and discards ALL local changes.
-# This cannot be undone.
+<#
+.SYNOPSIS
+Hard-resets the repository to HEAD after a confirmation prompt.
+#>
 function git-reset {
     Write-Warning "This will discard ALL local changes (git reset --hard)"
     Write-Warning "Press Ctrl+C to cancel, or Enter to continue..."

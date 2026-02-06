@@ -1,6 +1,7 @@
-# winrar.ps1
-
-# Compress current folder (excluding hidden files/folders) into a RAR archive
+<#
+.SYNOPSIS
+Archives the current folder contents to a timestamped RAR in restore_points.
+#>
 function rarit {
     $rarExe      = "C:\Program Files\WinRAR\rar.exe"
     $targetDir   = "D:\restore_points"

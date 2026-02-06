@@ -4,7 +4,7 @@ Personal Windows configuration files
 
 These are my user-specific configuration files that I use to personalize my Windows experience.
 
-![Splash](splash.webp)
+![Screenshot](screenshot.webp)
 
 ## What is included
 

@@ -1,9 +1,7 @@
-# go.ps1
-#
-# Changes the current directory based on a short name.
-# If called without arguments, it lists all available targets.
-# After navigation, it clears the screen and lists directory contents.
-
+<#
+.SYNOPSIS
+Jumps to a predefined folder by short name.
+#>
 function goto {
     param(
         [Parameter(Position = 0)]

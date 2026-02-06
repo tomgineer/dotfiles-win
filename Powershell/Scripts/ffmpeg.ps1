@@ -1,29 +1,7 @@
 <#
-videometa
-
-Scans the current directory for video files and generates metadata JSON files.
-
-For each video file found:
-- Uses ffprobe (ffmpeg) to extract metadata
-- Determines duration, container format, codec, dimensions and FPS
-- Classifies resolution as: 4K, 2K, HD, or SD (based on height)
-- Creates a "meta" subfolder if it does not exist
-- Writes a JSON file with the same base name as the video
-- Skips files that already have a corresponding JSON file
-
-Supported video formats:
-- mp4, mkv, mov, avi, webm, m4v, ts, mts
-
-Requirements:
-- ffmpeg / ffprobe available in PATH
-
-Usage:
-Run the function inside the folder containing the video files.
-
-Example:
-videometa
+.SYNOPSIS
+Creates midpoint WebP thumbnails for videos in the current folder.
 #>
-
 function videothumbs {
 
     $videoExt = @('*.mp4','*.mkv','*.mov','*.avi','*.wmv','*.m4v','*.webm','*.flv','*.mpg')
@@ -77,31 +55,9 @@ function videothumbs {
 }
 
 <#
-videometa
-
-Scans the current directory for video files and generates metadata JSON files.
-
-For each video file found:
-- Uses ffprobe (ffmpeg) to extract metadata
-- Determines duration, container format, codec, dimensions and FPS
-- Classifies resolution as: 4K, 2K, HD, or SD (based on height)
-- Creates a "meta" subfolder if it does not exist
-- Writes a JSON file with the same base name as the video
-- Skips files that already have a corresponding JSON file
-
-Supported video formats:
-mp4, mkv, mov, avi, webm, m4v, ts, mts
-
-Requirements:
-- ffmpeg / ffprobe available in PATH
-
-Usage:
-Run the function inside the folder containing the video files.
-
-Example:
-videometa
+.SYNOPSIS
+Extracts video metadata with ffprobe and saves one JSON file per video.
 #>
-
 function videometa {
     # Ensure ffprobe exists
     try {

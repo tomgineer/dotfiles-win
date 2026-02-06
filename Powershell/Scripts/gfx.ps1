@@ -1,14 +1,7 @@
-# gfx.ps1
-#
-# Creates a Windows .ico file from an input image using ImageMagick.
-# The generated icon includes multiple embedded resolutions (16 to 256 px).
-# After creation, the icon is inspected to verify its contents.
-# All embedded sizes are listed, and a warning is shown if the icon
-# does not contain multiple resolutions.
-#
-# Requirements:
-# - ImageMagick (magick.exe) must be available in PATH.
-
+<#
+.SYNOPSIS
+Creates a multi-size Windows ICO file from an input image.
+#>
 function makeico {
     param(
         [Parameter(Mandatory = $true)]
@@ -46,9 +39,10 @@ function makeico {
     }
 }
 
-# Removes all metadata (EXIF, IPTC, XMP, etc.) from an image file.
-# The original file is overwritten.
-# Requires exiftool to be installed and available in PATH.
+<#
+.SYNOPSIS
+Removes embedded metadata from an image file in place.
+#>
 function remove-meta {
     param (
         [Parameter(Mandatory = $true)]

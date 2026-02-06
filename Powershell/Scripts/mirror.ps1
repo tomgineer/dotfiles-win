@@ -139,6 +139,10 @@ function script:Invoke-RoboMirror {
     }
 }
 
+<#
+.SYNOPSIS
+Mirrors drive D: to the NAS data share using robocopy.
+#>
 function mir-data {
     Invoke-RoboMirror `
         -Source 'D:\' `
@@ -146,6 +150,10 @@ function mir-data {
         -LogName 'log_drive_data'
 }
 
+<#
+.SYNOPSIS
+Mirrors drive X: to the NAS AI share with AI-specific exclusions.
+#>
 function mir-ai {
     Invoke-RoboMirror `
         -Source 'X:\' `
@@ -154,6 +162,10 @@ function mir-ai {
         -ExtraExcludeDirs @('snapshots', 'tmp', 'cache')
 }
 
+<#
+.SYNOPSIS
+Mirrors drive G: to the NAS GitHub share.
+#>
 function mir-github {
     Invoke-RoboMirror `
         -Source 'G:\' `
@@ -162,6 +174,10 @@ function mir-github {
         -ExtraExcludeDirs @('snapshots')
 }
 
+<#
+.SYNOPSIS
+Mirrors drive M: to the NAS media share.
+#>
 function mir-media {
     Invoke-RoboMirror `
         -Source 'M:\' `
@@ -169,6 +185,10 @@ function mir-media {
         -LogName 'log_drive_media'
 }
 
+<#
+.SYNOPSIS
+Mirrors the local web root to the NAS webserver share.
+#>
 function mir-webserver {
     Invoke-RoboMirror `
         -Source 'E:\xampp\htdocs' `
@@ -293,6 +313,10 @@ function script:Invoke-RoboLocal {
     }
 }
 
+<#
+.SYNOPSIS
+Copies AI output folders into the local media library targets.
+#>
 function mir-ai-media {
     # Forge: txt2img output -> media library
     Invoke-RoboLocal `
@@ -316,6 +340,10 @@ function mir-ai-media {
         -LogName 'copy_ai_wan'
 }
 
+<#
+.SYNOPSIS
+Mirrors a custom source path to a custom destination path.
+#>
 function mir-ext {
     param(
         [Parameter(Mandatory = $true)]
@@ -334,6 +362,10 @@ function mir-ext {
         -LogName $LogName
 }
 
+<#
+.SYNOPSIS
+Mirrors the PowerShell scripts folder to the dotfiles backup location.
+#>
 function mir-scripts {
     Invoke-RoboLocal `
         -Mode 'mirror' `
@@ -342,15 +374,10 @@ function mir-scripts {
         -LogName 'mirror_powershell_scripts'
 }
 
-# ------------------------------------------------------------------------------
-# MIRROR JOB SELECTOR
-#
-# Central menu for all mirror operations.
-# Run individual jobs or execute all in the defined order.
-#
-# WARNING:
-# Some jobs use /MIR and may delete files on the destination.
-# ------------------------------------------------------------------------------
+<#
+.SYNOPSIS
+Shows a menu to run one or all configured mirror jobs.
+#>
 function mir {
     $options = @(
         [PSCustomObject]@{ Name = 'mir-ai-media';   Desc = 'Local sync AI outputs into X:\media (no deletions, local only)';       Action = { mir-ai-media } }

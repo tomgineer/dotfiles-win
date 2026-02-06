@@ -1,18 +1,23 @@
-# profile
-# Opens the current user profile file ($PROFILE) in Notepad.
+<#
+.SYNOPSIS
+Opens the current PowerShell profile file in Notepad++.
+#>
 function profile {
-    notepad $PROFILE
+    notepad++ $PROFILE
 }
 
-# reload
-# Reloads the current user profile by dot-sourcing it.
-# Useful after editing functions or settings.
+<#
+.SYNOPSIS
+Reloads the current PowerShell profile into the active session.
+#>
 function reload {
     . $PROFILE
 }
 
-# profile-location
-# Opens the PowerShell profile directory in File Explorer.
+<#
+.SYNOPSIS
+Opens the folder that contains the current PowerShell profile.
+#>
 function profile-location {
     explorer (Split-Path $PROFILE)
 }

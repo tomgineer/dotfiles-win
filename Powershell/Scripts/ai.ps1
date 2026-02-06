@@ -1,5 +1,7 @@
-# Shows predefined image dimensions grouped by aspect ratio in a colorized table.
-
+<#
+.SYNOPSIS
+Displays common AI image dimensions grouped by aspect ratio.
+#>
 function dim {
 
     $square   = @("768 x 768", "1024 x 1024", "1536 x 1536")

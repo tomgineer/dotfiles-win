@@ -1,8 +1,7 @@
-# youtube.ps1
-#
-# Download a single YouTube video (no playlists), merging the best available video and audio streams into an MKV file.
-# Uses the Node.js JS runtime and browser cookies to reliably pass YouTube’s JavaScript and anti-bot challenges.
-# Enforces Windows-safe filenames and prefers H.264 video for maximum playback compatibility.
+<#
+.SYNOPSIS
+Downloads one YouTube video with best streams and H.264 preference.
+#>
 function get-youtube {
     param([string]$url)
     if (-not $url) { Write-Warning 'No URL provided'; return }
@@ -17,9 +16,10 @@ function get-youtube {
         "$url"
 }
 
-# Download an entire YouTube playlist and merge each video’s best streams into MKV containers.
-# Uses Node.js and cookies to avoid age, region, and challenge-related failures during large playlist downloads.
-# Applies Windows-safe filenames and H.264 preference to prevent ffmpeg postprocessing errors.
+<#
+.SYNOPSIS
+Downloads a YouTube playlist using yt-dlp with safe Windows naming.
+#>
 function get-playlist {
     param([string]$url)
     if (-not $url) { Write-Warning 'No URL provided'; return }
@@ -32,9 +32,10 @@ function get-playlist {
         "$url"
 }
 
-# Download a single YouTube video and extract the best available audio track as an MP3 file.
-# Uses Node.js and cookies to ensure stable extraction even for restricted or challenge-protected videos.
-# Sanitizes filenames for Windows and avoids playlist downloads to prevent accidental batch processing.
+<#
+.SYNOPSIS
+Downloads audio from one YouTube video and converts it to MP3.
+#>
 function get-mp3 {
     param([string]$url)
     if (-not $url) { Write-Warning 'No URL provided'; return }
