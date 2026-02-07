@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Downloads one YouTube video with best streams and H.264 preference.
+Downloads one YouTube video with the highest-quality available streams.
 #>
 function get-youtube {
     param([string]$url)
@@ -11,7 +11,6 @@ function get-youtube {
         --windows-filenames `
         --no-playlist `
         --cookies "D:\powershell\yt-dlp\cookies.txt" `
-        -S "codec:h264" `
         -f "bv*+ba/b" `
         "$url"
 }
@@ -28,7 +27,6 @@ function get-playlist {
         --js-runtimes node `
         --windows-filenames `
         --cookies "D:\powershell\yt-dlp\cookies.txt" `
-        -S "codec:h264" `
         "$url"
 }
 
@@ -50,3 +48,5 @@ function get-mp3 {
         --audio-format mp3 `
         "$url"
 }
+
+

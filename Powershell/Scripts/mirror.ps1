@@ -388,33 +388,41 @@ function mir {
         [PSCustomObject]@{ Name = 'mir-webserver';  Desc = 'Mirror E:\ to NAS drives\webserver (excludes XAMPP logs/tmp/etc.)';    Action = { mir-webserver } }
     )
 
+    $menuGlyphs = @('󰲠', '󰲢', '󰲤', '󰲦', '󰲨', '󰲪', '󰲬', '')
+    $runAllGlyph = $menuGlyphs[$options.Count]
+    $exitGlyph = $menuGlyphs[$options.Count + 1]
+
     Write-Host ""
     Write-Host "󰑮 Available mirror jobs" -ForegroundColor Cyan
     Write-Host ""
 
     for ($i = 0; $i -lt $options.Count; $i++) {
-        $n = $i + 1
-        Write-Host ("{0,2}) " -f $n) -NoNewline -ForegroundColor White
-        Write-Host ("{0,-14}  " -f $options[$i].Name) -NoNewline -ForegroundColor Green
-        Write-Host $options[$i].Desc -ForegroundColor DarkGray
+        Write-Host (" {0} " -f $menuGlyphs[$i]) -NoNewline -ForegroundColor Gray
+        Write-Host ("{0,-14} " -f $options[$i].Name) -NoNewline -ForegroundColor Blue
+        Write-Host $options[$i].Desc -ForegroundColor Gray
     }
 
-    $runAllIndex = $options.Count + 1
-    Write-Host ""
-    Write-Host ("{0,2}) Run All" -f $runAllIndex) -ForegroundColor Cyan
-    Write-Host " 0) Exit" -ForegroundColor DarkRed
+    Write-Host (" {0} " -f $runAllGlyph) -NoNewline -ForegroundColor Gray
+    Write-Host ("{0,-14} " -f "Run All") -NoNewline -ForegroundColor Blue
+    Write-Host "Run all mirror jobs in defined order" -ForegroundColor Gray
     Write-Host ""
 
+    Write-Host (" {0} " -f $exitGlyph) -NoNewline -ForegroundColor Gray
+    Write-Host "Exit" -ForegroundColor Blue
+    Write-Host ""
     $input = Read-Host "Select a number"
-    if ($input -eq '0') {
-        return
-    }
 
     $choice = 0
     if (-not [int]::TryParse($input, [ref]$choice)) {
         Write-Host "Please enter a number." -ForegroundColor Red
         return
     }
+
+    if ($choice -eq 0) {
+        return
+    }
+
+    $runAllIndex = $options.Count + 1
 
     # Run All
     if ($choice -eq $runAllIndex) {
@@ -446,4 +454,7 @@ function mir {
 
     & $selected.Action
 }
+
+
+
 
