@@ -4,7 +4,10 @@ Downloads one YouTube video with the highest-quality available streams.
 #>
 function get-youtube {
     param([string]$url)
-    if (-not $url) { Write-Warning 'No URL provided'; return }
+    if ([string]::IsNullOrWhiteSpace($url)) {
+        Write-Host "Syntax: get-youtube <url>"
+        return
+    }
 
     yt-dlp `
         --js-runtimes node `
@@ -21,7 +24,10 @@ Downloads a YouTube playlist using yt-dlp with safe Windows naming.
 #>
 function get-playlist {
     param([string]$url)
-    if (-not $url) { Write-Warning 'No URL provided'; return }
+    if ([string]::IsNullOrWhiteSpace($url)) {
+        Write-Host "Syntax: get-playlist <url>"
+        return
+    }
 
     yt-dlp `
         --js-runtimes node `
@@ -36,7 +42,10 @@ Downloads audio from one YouTube video and converts it to MP3.
 #>
 function get-mp3 {
     param([string]$url)
-    if (-not $url) { Write-Warning 'No URL provided'; return }
+    if ([string]::IsNullOrWhiteSpace($url)) {
+        Write-Host "Syntax: get-mp3 <url>"
+        return
+    }
 
     yt-dlp `
         --js-runtimes node `

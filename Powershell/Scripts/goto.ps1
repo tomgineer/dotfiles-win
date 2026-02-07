@@ -26,12 +26,13 @@ function goto {
         Write-Host ""
 
         foreach ($k in $targets.Keys) {
-            Write-Host ("  {0,-10} " -f $k) -NoNewline -ForegroundColor Green
-            Write-Host $targets[$k] -ForegroundColor DarkGray
+            Write-Host ("  {0,-10} " -f $k) -NoNewline -ForegroundColor Blue
+            Write-Host "  " -NoNewline -ForegroundColor Red
+            Write-Host $targets[$k] -ForegroundColor Gray
         }
 
         Write-Host ""
-        Write-Host "Usage: goto <target>" -ForegroundColor DarkGray
+        Write-Host "Usage: goto <target>" -ForegroundColor DarkBlue
         Write-Host ""
         return
     }

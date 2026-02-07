@@ -346,14 +346,17 @@ Mirrors a custom source path to a custom destination path.
 #>
 function mir-ext {
     param(
-        [Parameter(Mandatory = $true)]
         [string]$Source,
 
-        [Parameter(Mandatory = $true)]
         [string]$Destination,
 
         [string]$LogName = 'mirror_external'
     )
+
+    if ([string]::IsNullOrWhiteSpace($Source) -or [string]::IsNullOrWhiteSpace($Destination)) {
+        Write-Host "Syntax: mir-ext <source> <destination> [log-name]"
+        return
+    }
 
     Invoke-RoboLocal `
         -Mode 'mirror' `

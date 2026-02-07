@@ -4,9 +4,13 @@ Creates a multi-size Windows ICO file from an input image.
 #>
 function makeico {
     param(
-        [Parameter(Mandatory = $true)]
         [string]$InputFile
     )
+
+    if ([string]::IsNullOrWhiteSpace($InputFile)) {
+        Write-Host "Syntax: makeico <input-file>"
+        return
+    }
 
     if (-not (Test-Path -LiteralPath $InputFile)) {
         throw "File not found: $InputFile"
