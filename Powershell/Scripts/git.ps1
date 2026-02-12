@@ -40,7 +40,6 @@ function gtp {
 Runs status, add, commit, and push with a default commit message.
 #>
 function gtx {
-    git status
     git add .
     git commit -m "Small Fix"
     git push origin main

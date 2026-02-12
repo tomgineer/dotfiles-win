@@ -11,7 +11,7 @@ function goto {
     $targets = [ordered]@{
         git     = 'G:\'
         power   = 'D:\powershell'
-        icons   = 'G:\iconium\png'
+        icons   = 'G:\iconium'
         web     = 'E:\xampp\htdocs'
         scripts = 'G:\dotfiles-win'
         home    = 'D:\'

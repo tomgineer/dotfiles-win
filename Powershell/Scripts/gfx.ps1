@@ -53,10 +53,25 @@ function remove-meta {
         [string]$File
     )
 
-    if (-not (Test-Path $File)) {
+    if (-not (Test-Path -LiteralPath $File)) {
         Write-Error "File not found: $File"
         return
     }
 
-    exiftool -all= -overwrite_original $File | Out-Null
+    $directory = [System.IO.Path]::GetDirectoryName((Resolve-Path -LiteralPath $File).Path)
+    $extension = [System.IO.Path]::GetExtension($File)
+    $tempFile = [System.IO.Path]::Combine($directory, ([System.IO.Path]::GetRandomFileName() + $extension))
+
+    try {
+        magick $File -colorspace sRGB -strip $tempFile
+        Move-Item -LiteralPath $tempFile -Destination $File -Force
+    } finally {
+        if (Test-Path -LiteralPath $tempFile) {
+            Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    # verify: should output nothing if ICC is gone
+    exiftool -G1 -a -s $File
+
 }
