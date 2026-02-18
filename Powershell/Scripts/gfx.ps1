@@ -75,3 +75,53 @@ function remove-meta {
     exiftool -G1 -a -s $File
 
 }
+
+<#
+.SYNOPSIS
+Adds a default folder cover to leaf directories that lack folder.png/jpg/webp.
+#>
+function coverfiller {
+
+    $root = (Get-Location).Path
+    $source = Join-Path $root "folder-example.webp"
+
+    if (-not (Test-Path -LiteralPath $source)) {
+        Write-Error "Missing source file: $source"
+        return
+    }
+
+    # Get all directories under root
+    Get-ChildItem -LiteralPath $root -Directory -Recurse | ForEach-Object {
+
+        $dir = $_.FullName
+
+        # Check if leaf folder (no subdirectories)
+        $hasSubdirs = Get-ChildItem -LiteralPath $dir -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($hasSubdirs) {
+            return
+        }
+
+        # Check if folder.png/jpg/jpeg/webp already exists
+        $existingCover = Get-ChildItem -LiteralPath $dir -File -ErrorAction SilentlyContinue |
+            Where-Object {
+                $_.BaseName -ieq "folder" -and
+                $_.Extension -in @(".png", ".jpg", ".jpeg", ".webp")
+            } |
+            Select-Object -First 1
+
+        if ($existingCover) {
+            return
+        }
+
+        # Copy cover
+        $dest = Join-Path $dir "folder.webp"
+
+        try {
+            Copy-Item -LiteralPath $source -Destination $dest -Force
+            Write-Host "Added cover: $dest"
+        }
+        catch {
+            Write-Warning "Failed to copy to '$dest': $($_.Exception.Message)"
+        }
+    }
+}
