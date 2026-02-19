@@ -125,3 +125,100 @@ function coverfiller {
         }
     }
 }
+
+<#
+.SYNOPSIS
+In leaf directories, converts existing folder.(png|jpg|jpeg|webp) to folder.webp
+(resize max 1200x1200, quality 60) using ImageMagick. Deletes original by default.
+#>
+function coverconv {
+
+    param(
+        [int]$MaxSize = 1200,
+        [int]$Quality = 60,
+        [switch]$KeepOriginal
+    )
+
+    $root = (Get-Location).Path
+
+    # Check ImageMagick availability
+    $magickCmd = Get-Command magick -ErrorAction SilentlyContinue
+    if (-not $magickCmd) {
+        Write-Error "ImageMagick not found. Install it and ensure 'magick' is in PATH."
+        return
+    }
+
+    Get-ChildItem -LiteralPath $root -Directory -Recurse | ForEach-Object {
+
+        $dir = $_.FullName
+
+        # Leaf folder check
+        $hasSubdirs = Get-ChildItem -LiteralPath $dir -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($hasSubdirs) {
+            return
+        }
+
+        # Find existing folder.(png|jpg|jpeg|webp)
+        $existingCover = Get-ChildItem -LiteralPath $dir -File -ErrorAction SilentlyContinue |
+            Where-Object {
+                $_.BaseName -ieq "folder" -and
+                $_.Extension.ToLowerInvariant() -in @(".png", ".jpg", ".jpeg", ".webp")
+            } |
+            Select-Object -First 1
+
+        if (-not $existingCover) {
+            return
+        }
+
+        $src  = $existingCover.FullName
+        $dest = Join-Path $dir "folder.webp"
+
+        try {
+
+            if ($src -ieq $dest) {
+                # Source is already folder.webp -> resize in-place safely via temp file
+                $temp = Join-Path $dir "folder_temp.webp"
+
+                & magick `
+                    "$src" `
+                    -auto-orient `
+                    -resize "${MaxSize}x${MaxSize}>" `
+                    -quality $Quality `
+                    -strip `
+                    "$temp"
+
+                if ($LASTEXITCODE -ne 0) {
+                    throw "ImageMagick exited with code $LASTEXITCODE"
+                }
+
+                Move-Item -LiteralPath $temp -Destination $dest -Force
+                Write-Host "Resized WebP: $dest"
+            }
+            else {
+                # Convert to webp
+                & magick `
+                    "$src" `
+                    -auto-orient `
+                    -resize "${MaxSize}x${MaxSize}>" `
+                    -quality $Quality `
+                    -strip `
+                    "$dest"
+
+                if ($LASTEXITCODE -ne 0) {
+                    throw "ImageMagick exited with code $LASTEXITCODE"
+                }
+
+                Write-Host "Created WebP: $dest"
+
+                # Delete original by default
+                if (-not $KeepOriginal) {
+                    Remove-Item -LiteralPath $src -Force
+                    Write-Host "Deleted original: $src"
+                }
+            }
+        }
+        catch {
+            Write-Warning "Failed to process '$src': $($_.Exception.Message)"
+        }
+    }
+}
