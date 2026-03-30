@@ -4,6 +4,7 @@ Downloads one YouTube video with the highest-quality available streams.
 #>
 function get-youtube {
     param([string]$url)
+
     if ([string]::IsNullOrWhiteSpace($url)) {
         Write-Host "Syntax: get-youtube <url>"
         return

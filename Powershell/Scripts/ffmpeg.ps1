@@ -166,3 +166,64 @@ function videometa {
         Write-Host "✔ $($f.Name) ${width}x${height} (rot $rotation)"
     }
 }
+
+<#
+.SYNOPSIS
+Lists video files in the current directory that are not 4K.
+#>
+function not4k() {
+    <#
+    .SYNOPSIS
+    Lists video files in the current directory that are not 4K.
+    #>
+
+    $files = Get-ChildItem -File | Where-Object {
+        $_.Extension.ToLower() -in @(
+            '.mp4', '.mkv', '.avi', '.mov', '.wmv',
+            '.flv', '.webm', '.m4v', '.mpg', '.mpeg', '.ts'
+        )
+    }
+
+    if (-not $files) {
+        Write-Host 'No video files found in the current directory.'
+        return
+    }
+
+    $not4kFiles = foreach ($file in $files) {
+        $probeOutput = & ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x "$($file.FullName)" 2>$null
+
+        if (-not $probeOutput) {
+            [PSCustomObject]@{
+                File   = $file.Name
+                Width  = 'Unknown'
+                Height = 'Unknown'
+                Status = 'Could not read video info'
+            }
+            continue
+        }
+
+        $parts = $probeOutput.Trim() -split 'x'
+        $width = [int]$parts[0]
+        $height = [int]$parts[1]
+
+        if (
+            -not (
+                ($width -eq 3840 -and $height -eq 2160) -or
+                ($width -eq 4096 -and $height -eq 2160)
+            )
+        ) {
+            [PSCustomObject]@{
+                File   = $file.Name
+                Width  = $width
+                Height = $height
+                Status = 'Not 4K'
+            }
+        }
+    }
+
+    if ($not4kFiles) {
+        $not4kFiles | Format-Table -AutoSize
+    } else {
+        Write-Host 'All video files in the current directory are 4K.'
+    }
+}

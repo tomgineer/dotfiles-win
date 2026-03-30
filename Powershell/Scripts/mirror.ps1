@@ -82,7 +82,7 @@ function script:Invoke-RoboMirror {
         '/MIR'         # Mirror source to destination (includes deletions)
         '/R:2'         # Retry 2 times on failed copies
         '/W:2'         # Wait 2 seconds between retries
-        '/MT:16'       # Use 16 threads (multithreaded copy)
+        '/MT:8'        # Use 8 threads (multithreaded copy)
         '/XA:SH'       # Exclude hidden and system files
         '/A-:SH'       # Don't set hidden/system attributes on destination
         '/TEE'         # Output to console and log file
@@ -260,7 +260,7 @@ function script:Invoke-RoboLocal {
     $commonArgs = @(
         '/R:2'         # Retry 2 times on failed copies
         '/W:2'         # Wait 2 seconds between retries
-        '/MT:16'       # Use 16 threads (multithreaded copy)
+        '/MT:8'        # Use 8 threads (multithreaded copy)
         '/XA:SH'       # Exclude hidden and system files
         '/A-:SH'       # Don't set hidden/system attributes on destination
         '/TEE'         # Output to console and log file
