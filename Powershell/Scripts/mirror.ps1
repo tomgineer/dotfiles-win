@@ -140,25 +140,13 @@ function script:Invoke-RoboMirror {
 
 <#
 .SYNOPSIS
-Mirrors drive D: to the NAS data share using robocopy.
+Mirrors drive D: to the NAS data share.
 #>
 function mir-data {
     Invoke-RoboMirror `
         -Source 'D:\' `
         -Destination '\\bytebunker\drives\data' `
         -LogName 'log_drive_data'
-}
-
-<#
-.SYNOPSIS
-Mirrors drive X: to the NAS AI share with AI-specific exclusions.
-#>
-function mir-ai {
-    Invoke-RoboMirror `
-        -Source 'X:\' `
-        -Destination '\\bytebunker\drives\ai' `
-        -LogName 'log_drive_ai' `
-        -ExtraExcludeDirs @('snapshots', 'tmp', 'cache')
 }
 
 <#
@@ -175,12 +163,24 @@ function mir-github {
 
 <#
 .SYNOPSIS
-Mirrors drive M: to the NAS media share.
+Mirrors drive X: to the external hard drive AI folder.
+#>
+function mir-ai {
+    Invoke-RoboMirror `
+        -Source 'X:\' `
+        -Destination 'F:\drives\ai' `
+        -LogName 'log_drive_ai' `
+        -ExtraExcludeDirs @('snapshots', 'tmp', 'cache')
+}
+
+<#
+.SYNOPSIS
+Mirrors drive M: to the external hard drive media folder.
 #>
 function mir-media {
     Invoke-RoboMirror `
         -Source 'M:\' `
-        -Destination '\\bytebunker\drives\media' `
+        -Destination 'F:\drives\media' `
         -LogName 'log_drive_media'
 }
 
@@ -381,17 +381,15 @@ Shows a menu to run one or all configured mirror jobs.
 #>
 function mir {
     $options = @(
-        [PSCustomObject]@{ Name = 'mir-ai-media';   Desc = 'Local sync AI outputs into X:\media (no deletions, local only)';       Action = { mir-ai-media } }
-        [PSCustomObject]@{ Name = 'mir-data';       Desc = 'Mirror D:\ to NAS drives\data (includes deletions on destination)';    Action = { mir-data } }
-        [PSCustomObject]@{ Name = 'mir-ai';         Desc = 'Mirror X:\ to NAS drives\ai (excludes snapshots/tmp/cache)';           Action = { mir-ai } }
-        [PSCustomObject]@{ Name = 'mir-github';     Desc = 'Mirror G:\ to NAS drives\github (excludes snapshots)';                 Action = { mir-github } }
-        [PSCustomObject]@{ Name = 'mir-media';      Desc = 'Mirror M:\ to NAS drives\media';                                       Action = { mir-media } }
-        [PSCustomObject]@{ Name = 'mir-webserver';  Desc = 'Mirror E:\ to NAS drives\webserver (excludes XAMPP logs/tmp/etc.)';    Action = { mir-webserver } }
+        [PSCustomObject]@{ Name = 'mir-ai-media';   Desc = 'Local sync AI outputs into X:\media (no deletions, local only)'; Action = { mir-ai-media } }
+        [PSCustomObject]@{ Name = 'mir-data';       Desc = 'Mirror D:\ to NAS data share';                                  Action = { mir-data } }
+        [PSCustomObject]@{ Name = 'mir-ai';         Desc = 'Mirror X:\ to external hard drive AI folder';                   Action = { mir-ai } }
+        [PSCustomObject]@{ Name = 'mir-github';     Desc = 'Mirror G:\ to NAS GitHub share';                                Action = { mir-github } }
+        [PSCustomObject]@{ Name = 'mir-media';      Desc = 'Mirror M:\ to external hard drive media folder';                Action = { mir-media } }
+        [PSCustomObject]@{ Name = 'mir-webserver';  Desc = 'Mirror local web root to NAS webserver share';                  Action = { mir-webserver } }
     )
 
-    $menuGlyphs = @('󰲠', '󰲢', '󰲤', '󰲦', '󰲨', '󰲪', '󰲬', '')
-    $runAllGlyph = $menuGlyphs[$options.Count]
-    $exitGlyph = $menuGlyphs[$options.Count + 1]
+    $menuGlyphs = @('󰲠', '󰲢', '󰲤', '󰲦', '󰲨', '󰲪', '󰲬', '󰲮', '')
 
     Write-Host ""
     Write-Host "󰑮 Available mirror jobs" -ForegroundColor Cyan
@@ -399,34 +397,32 @@ function mir {
 
     for ($i = 0; $i -lt $options.Count; $i++) {
         Write-Host (" {0} " -f $menuGlyphs[$i]) -NoNewline -ForegroundColor Gray
-        Write-Host ("{0,-14} " -f $options[$i].Name) -NoNewline -ForegroundColor Blue
+        Write-Host ("{0,-26} " -f $options[$i].Name) -NoNewline -ForegroundColor Blue
         Write-Host $options[$i].Desc -ForegroundColor Gray
     }
 
-    Write-Host (" {0} " -f $runAllGlyph) -NoNewline -ForegroundColor Gray
-    Write-Host ("{0,-14} " -f "Run All") -NoNewline -ForegroundColor Blue
-    Write-Host "Run all mirror jobs in defined order" -ForegroundColor Gray
-    Write-Host ""
+    Write-Host (" {0} " -f $menuGlyphs[6]) -NoNewline -ForegroundColor Gray
+    Write-Host ("{0,-26} " -f 'Mirror All to NAS') -NoNewline -ForegroundColor Blue
+    Write-Host "Run all mirror jobs that send data to the NAS" -ForegroundColor Gray
 
-    Write-Host (" {0} " -f $exitGlyph) -NoNewline -ForegroundColor Gray
-    Write-Host "Exit" -ForegroundColor Blue
+    Write-Host (" {0} " -f $menuGlyphs[7]) -NoNewline -ForegroundColor Gray
+    Write-Host ("{0,-26} " -f 'Mirror All to WD Black') -NoNewline -ForegroundColor Blue
+    Write-Host "Run mir-ai-media first, then all mirror jobs that send data to WD Black" -ForegroundColor Gray
+
+    Write-Host (" {0} " -f $menuGlyphs[8]) -NoNewline -ForegroundColor Gray
+    Write-Host ("{0,-26} " -f 'Run All') -NoNewline -ForegroundColor Blue
+    Write-Host "Run all mirror jobs in defined order" -ForegroundColor Gray
+
     Write-Host ""
     $input = Read-Host "Select a number"
 
-    $choice = 0
+    $choice = -1
     if (-not [int]::TryParse($input, [ref]$choice)) {
         Write-Host "Please enter a number." -ForegroundColor Red
         return
     }
 
     if ($choice -eq 0) {
-        return
-    }
-
-    $runAllIndex = $options.Count + 1
-
-    # Run All
-    if ($choice -eq $runAllIndex) {
         Write-Host ""
         Write-Host "Running ALL mirror jobs (in defined order)" -ForegroundColor Cyan
         Write-Host ""
@@ -441,8 +437,46 @@ function mir {
         return
     }
 
+    if ($choice -eq 7) {
+        $nasJobs = @(
+            $options | Where-Object { $_.Name -in @('mir-data', 'mir-github', 'mir-webserver') }
+        )
+
+        Write-Host ""
+        Write-Host "Running all NAS mirror jobs" -ForegroundColor Cyan
+        Write-Host ""
+
+        foreach ($job in $nasJobs) {
+            Write-Host "Running: $($job.Name)" -ForegroundColor Cyan
+            Write-Host "Info:    $($job.Desc)" -ForegroundColor DarkGray
+            Write-Host ""
+            & $job.Action
+        }
+
+        return
+    }
+
+    if ($choice -eq 8) {
+        $hddJobs = @(
+            $options | Where-Object { $_.Name -in @('mir-ai-media', 'mir-ai', 'mir-media') }
+        )
+
+        Write-Host ""
+        Write-Host "Running all external hard drive mirror jobs" -ForegroundColor Cyan
+        Write-Host ""
+
+        foreach ($job in $hddJobs) {
+            Write-Host "Running: $($job.Name)" -ForegroundColor Cyan
+            Write-Host "Info:    $($job.Desc)" -ForegroundColor DarkGray
+            Write-Host ""
+            & $job.Action
+        }
+
+        return
+    }
+
     if ($choice -lt 1 -or $choice -gt $options.Count) {
-        Write-Host "Invalid choice. Pick 1 to $runAllIndex, or 0 to exit." -ForegroundColor Red
+        Write-Host "Invalid choice. Pick 1 to 8, or 0." -ForegroundColor Red
         return
     }
 
