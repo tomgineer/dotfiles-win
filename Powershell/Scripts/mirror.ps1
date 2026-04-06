@@ -15,6 +15,20 @@
 # WARNING:
 # Uses robocopy /MIR. Files deleted at the source will be deleted on the NAS.
 # ------------------------------------------------------------------------------
+
+function script:Invoke-NasCredential {
+    $NasServer = 'bytebunker'
+    $User      = 'tom'
+    $EnvFile   = Join-Path $PSScriptRoot '.env'
+    $Passwd    = (Get-Content -LiteralPath $EnvFile -Raw).Trim()
+
+    cmdkey /add:$NasServer /user:$User /pass:$Passwd | Out-Null
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to store credentials for $NasServer as $User. cmdkey exit code: $LASTEXITCODE"
+    }
+}
+
 function script:Invoke-RoboMirror {
     param(
         [Parameter(Mandatory = $true)]
@@ -28,14 +42,6 @@ function script:Invoke-RoboMirror {
 
         [string[]]$ExtraExcludeDirs = @()
     )
-
-    # Define NAS connection details
-    $NAS         = '\\bytebunker'
-    $User        = 'tom'
-
-    # Read password from env file in the same directory as the script
-    $EnvFile = Join-Path $PSScriptRoot '.env'
-    $Passwd  = Get-Content -LiteralPath $EnvFile -Raw
 
     # Log Directory
     $LogDir = 'D:\powershell\.logs'
@@ -71,9 +77,6 @@ function script:Invoke-RoboMirror {
     # Define log file path
     $timestamp = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'
     $log = Join-Path $LogDir "${LogName}_$timestamp.txt"
-
-    # Connect to NAS share with credentials (net use is a legacy cmd utility, works here for quick access)
-    net use $NAS /user:$User $Passwd
 
     # Build Robocopy command arguments as an array
     $robocopyArgs = @(
@@ -121,8 +124,8 @@ function script:Invoke-RoboMirror {
     }
 
     # Display Args
-    Write-Host "`n 󰖃 Running Robocopy with arguments:" -ForegroundColor Cyan
-    Write-Host "robocopy $($robocopyArgs -join ' ')`n" -ForegroundColor Blue
+    Write-Host "`nRunning Robocopy with arguments:" -ForegroundColor Blue
+    Write-Host "robocopy $($robocopyArgs -join ' ')`n" -ForegroundColor DarkGray
 
     robocopy @robocopyArgs
     $rc = $LASTEXITCODE
@@ -138,77 +141,6 @@ function script:Invoke-RoboMirror {
     }
 }
 
-<#
-.SYNOPSIS
-Mirrors drive D: to the NAS data share.
-#>
-function mir-data {
-    Invoke-RoboMirror `
-        -Source 'D:\' `
-        -Destination '\\bytebunker\drives\data' `
-        -LogName 'log_drive_data'
-}
-
-<#
-.SYNOPSIS
-Mirrors drive G: to the NAS GitHub share.
-#>
-function mir-github {
-    Invoke-RoboMirror `
-        -Source 'G:\' `
-        -Destination '\\bytebunker\drives\github' `
-        -LogName 'log_drive_github' `
-        -ExtraExcludeDirs @('snapshots')
-}
-
-<#
-.SYNOPSIS
-Mirrors drive X: to the external hard drive AI folder.
-#>
-function mir-ai {
-    Invoke-RoboMirror `
-        -Source 'X:\' `
-        -Destination 'F:\drives\ai' `
-        -LogName 'log_drive_ai' `
-        -ExtraExcludeDirs @('snapshots', 'tmp', 'cache')
-}
-
-<#
-.SYNOPSIS
-Mirrors drive M: to the external hard drive media folder.
-#>
-function mir-media {
-    Invoke-RoboMirror `
-        -Source 'M:\' `
-        -Destination 'F:\drives\media' `
-        -LogName 'log_drive_media'
-}
-
-<#
-.SYNOPSIS
-Mirrors the local web root to the NAS webserver share.
-#>
-function mir-webserver {
-    Invoke-RoboMirror `
-        -Source 'E:\xampp\htdocs' `
-        -Destination '\\bytebunker\drives\webserver' `
-        -LogName 'log_drive_webserver' `
-        -ExtraExcludeDirs @('.git')
-}
-
-# ------------------------------------------------------------------------------
-# ROBOCOPY LOCAL SYNC / MIRROR ENGINE
-#
-# Core robocopy wrapper for local filesystem operations.
-#
-# - Supports copy (non-destructive) and mirror (destructive) modes
-# - Used by higher-level helper and menu functions
-# - Provides consistent logging, retry logic, and console output
-# - Applies standard system exclusions
-#
-# NOTE:
-# Mirror mode uses robocopy /MIR and may delete files in the destination.
-# ------------------------------------------------------------------------------
 function script:Invoke-RoboLocal {
     param(
         [Parameter(Mandatory = $true)]
@@ -313,6 +245,182 @@ function script:Invoke-RoboLocal {
 
 <#
 .SYNOPSIS
+All jobs mirroring data to NAS
+#>
+function mir-nas {
+    Invoke-NasCredential
+
+    $jobs = @(
+        @{ Source = 'D:\'; Destination = '\\bytebunker\drives\data'; LogName = 'log_nas_data' }
+        @{ Source = 'G:\'; Destination = '\\bytebunker\drives\github'; LogName = 'log_nas_github' }
+        @{ Source = 'E:\xampp\htdocs'; Destination = '\\bytebunker\drives\webserver'; LogName = 'log_nas_webserver' }
+    )
+
+    foreach ($job in $jobs) {
+        $jobLine = "  Running mirror job: $($job.Source) -> $($job.Destination) | 󰧮 $($job.LogName).log "
+        $border = ('=' * $jobLine.Length)
+
+        Write-Host ""
+        Write-Host $border -ForegroundColor Blue
+        Write-Host $jobLine -ForegroundColor White
+        Write-Host $border -ForegroundColor Blue
+
+        Invoke-RoboMirror `
+            -Source $job.Source `
+            -Destination $job.Destination `
+            -LogName $job.LogName
+    }
+}
+
+<#
+.SYNOPSIS
+All jobs mirroring data to External HDD
+#>
+function mir-black {
+    $jobs = @(
+        @{ Mode = 'copy'; Source = 'X:\apps\forge\webui\outputs\txt2img-images'; Destination = 'X:\media\forge'; LogName = 'copy_ai_forge' }
+        @{ Mode = 'copy'; Source = 'X:\apps\comfy_ui\ComfyUI\output'; Destination = 'X:\media\comfy_ui'; LogName = 'copy_ai_comfy_ui' }
+        @{ Mode = 'copy'; Source = 'X:\apps\wan2gp\outputs'; Destination = 'X:\media\wan'; LogName = 'copy_ai_wan' }
+        @{ Mode = 'mirror'; Source = 'D:\'; Destination = 'W:\drives\data'; LogName = 'log_black_data' }
+        @{ Mode = 'mirror'; Source = 'G:\'; Destination = 'W:\drives\github'; LogName = 'log_black_github' }
+        @{ Mode = 'mirror'; Source = 'M:\'; Destination = 'W:\drives\media'; LogName = 'log_black_media' }
+        @{ Mode = 'mirror'; Source = 'E:\xampp\htdocs'; Destination = 'W:\drives\webserver'; LogName = 'log_black_webserver' }
+        @{ Mode = 'mirror'; Source = 'X:\'; Destination = 'W:\drives\ai'; LogName = 'log_black_ai' }
+    )
+
+    foreach ($job in $jobs) {
+        $jobLine = "  Running $($job.Mode) job: $($job.Source) -> $($job.Destination) | 󰧮 $($job.LogName).log "
+        $border = ('=' * $jobLine.Length)
+
+        Write-Host ""
+        Write-Host $border -ForegroundColor Blue
+        Write-Host $jobLine -ForegroundColor White
+        Write-Host $border -ForegroundColor Blue
+
+        Invoke-RoboLocal `
+            -Mode $job.Mode `
+            -Source $job.Source `
+            -Destination $job.Destination `
+            -LogName $job.LogName
+    }
+}
+
+<#
+.SYNOPSIS
+All jobs mirroring data from NAS to External HDD
+#>
+function mir-backup {
+    Invoke-NasCredential
+
+    $jobs = @(
+        @{ Mode = 'mirror'; Source = '\\bytebunker\media'; Destination = 'W:\media'; LogName = 'log_backup_media' }
+        @{ Mode = 'mirror'; Source = '\\bytebunker\videos'; Destination = 'W:\videos'; LogName = 'log_backup_videos' }
+    )
+
+    foreach ($job in $jobs) {
+        $jobLine = "  Running $($job.Mode) job: $($job.Source) -> $($job.Destination) | 󰧮 $($job.LogName).log "
+        $border = ('=' * $jobLine.Length)
+
+        Write-Host ""
+        Write-Host $border -ForegroundColor Blue
+        Write-Host $jobLine -ForegroundColor White
+        Write-Host $border -ForegroundColor Blue
+
+        Invoke-RoboLocal `
+            -Mode $job.Mode `
+            -Source $job.Source `
+            -Destination $job.Destination `
+            -LogName $job.LogName
+    }
+}
+
+<#
+.SYNOPSIS
+Mirrors drive D: to the NAS data share.
+#>
+function mir-data {
+    Invoke-NasCredential
+    Invoke-RoboMirror `
+        -Source 'D:\' `
+        -Destination '\\bytebunker\drives\data' `
+        -LogName 'log_drive_data'
+}
+
+<#
+.SYNOPSIS
+Mirrors drive G: to the NAS GitHub share.
+#>
+function mir-github {
+    Invoke-NasCredential
+    Invoke-RoboMirror `
+        -Source 'G:\' `
+        -Destination '\\bytebunker\drives\github' `
+        -LogName 'log_drive_github' `
+        -ExtraExcludeDirs @('snapshots')
+}
+
+<#
+.SYNOPSIS
+Mirrors the local web root to the NAS webserver share.
+#>
+function mir-webserver {
+    Invoke-NasCredential
+    Invoke-RoboMirror `
+        -Source 'E:\xampp\htdocs' `
+        -Destination '\\bytebunker\drives\webserver' `
+        -LogName 'log_drive_webserver' `
+        -ExtraExcludeDirs @('.git')
+}
+
+<#
+.SYNOPSIS
+Mirrors drive X: to the external hard drive AI folder.
+#>
+function mir-ai {
+    Invoke-RoboMirror `
+        -Source 'X:\' `
+        -Destination 'W:\drives\ai' `
+        -LogName 'log_drive_ai' `
+        -ExtraExcludeDirs @('snapshots', 'tmp', 'cache')
+}
+
+<#
+.SYNOPSIS
+Mirrors drive M: to the external hard drive media folder.
+#>
+function mir-media {
+    Invoke-RoboMirror `
+        -Source 'M:\' `
+        -Destination 'W:\drives\media' `
+        -LogName 'log_drive_media'
+}
+
+<#
+.SYNOPSIS
+Mirrors NAS media to the external hard drive media folder.
+#>
+function mir-nas-media {
+    Invoke-NasCredential
+    Invoke-RoboMirror `
+        -Source '\\bytebunker\media' `
+        -Destination 'W:\media' `
+        -LogName 'log_drive_nas_media'
+}
+
+<#
+.SYNOPSIS
+Mirrors NAS videos to the external hard drive media folder.
+#>
+function mir-nas-videos {
+    Invoke-NasCredential
+    Invoke-RoboMirror `
+        -Source '\\bytebunker\videos' `
+        -Destination 'W:\videos' `
+        -LogName 'log_drive_nas_videos'
+}
+
+<#
+.SYNOPSIS
 Copies AI output folders into the local media library targets.
 #>
 function mir-ai-media {
@@ -356,6 +464,7 @@ function mir-ext {
         return
     }
 
+    Invoke-NasCredential
     Invoke-RoboLocal `
         -Mode 'mirror' `
         -Source $Source `
@@ -377,41 +486,64 @@ function mir-scripts {
 
 <#
 .SYNOPSIS
-Shows a menu to run one or all configured mirror jobs.
+Shows a menu to run configured mirror jobs.
 #>
 function mir {
-    $options = @(
-        [PSCustomObject]@{ Name = 'mir-ai-media';   Desc = 'Local sync AI outputs into X:\media (no deletions, local only)'; Action = { mir-ai-media } }
-        [PSCustomObject]@{ Name = 'mir-data';       Desc = 'Mirror D:\ to NAS data share';                                  Action = { mir-data } }
-        [PSCustomObject]@{ Name = 'mir-ai';         Desc = 'Mirror X:\ to external hard drive AI folder';                   Action = { mir-ai } }
-        [PSCustomObject]@{ Name = 'mir-github';     Desc = 'Mirror G:\ to NAS GitHub share';                                Action = { mir-github } }
-        [PSCustomObject]@{ Name = 'mir-media';      Desc = 'Mirror M:\ to external hard drive media folder';                Action = { mir-media } }
-        [PSCustomObject]@{ Name = 'mir-webserver';  Desc = 'Mirror local web root to NAS webserver share';                  Action = { mir-webserver } }
+    $groupedOptions = @(
+        [PSCustomObject]@{ Header = 'Aggregate Jobs'; Items = @(
+            [PSCustomObject]@{ Name = 'mir-nas';        Desc = 'Run all NAS mirror jobs';                                  Action = { mir-nas } }
+            [PSCustomObject]@{ Name = 'mir-black';      Desc = 'Run AI copy jobs, then mirror jobs to WD Black';           Action = { mir-black } }
+            [PSCustomObject]@{ Name = 'mir-backup';     Desc = 'Mirror NAS media and videos to the external backup drive'; Action = { mir-backup } }
+        ) }
+        [PSCustomObject]@{ Header = 'Single Jobs'; Items = @(
+            [PSCustomObject]@{ Name = 'mir-data';       Desc = 'Mirror D:\ to NAS data share';                             Action = { mir-data } }
+            [PSCustomObject]@{ Name = 'mir-github';     Desc = 'Mirror G:\ to NAS GitHub share';                           Action = { mir-github } }
+            [PSCustomObject]@{ Name = 'mir-webserver';  Desc = 'Mirror local web root to NAS webserver share';             Action = { mir-webserver } }
+            [PSCustomObject]@{ Name = 'mir-ai';         Desc = 'Mirror X:\ to external hard drive AI folder';              Action = { mir-ai } }
+            [PSCustomObject]@{ Name = 'mir-media';      Desc = 'Mirror M:\ to external hard drive media folder';           Action = { mir-media } }
+            [PSCustomObject]@{ Name = 'mir-nas-media';  Desc = 'Mirror NAS media to the external hard drive';              Action = { mir-nas-media } }
+            [PSCustomObject]@{ Name = 'mir-nas-videos'; Desc = 'Mirror NAS videos to the external hard drive';             Action = { mir-nas-videos } }
+            [PSCustomObject]@{ Name = 'mir-ai-media';   Desc = 'Copy AI outputs into X:\media without deletions';          Action = { mir-ai-media } }
+            [PSCustomObject]@{ Name = 'mir-scripts';    Desc = 'Mirror PowerShell scripts to the dotfiles backup';         Action = { mir-scripts } }
+        ) }
     )
 
-    $menuGlyphs = @('󰲠', '󰲢', '󰲤', '󰲦', '󰲨', '󰲪', '󰲬', '󰲮', '')
+    $options = @(
+        [PSCustomObject]@{ Name = 'mir-nas';        Desc = 'Run all NAS mirror jobs';                                       Action = { mir-nas } }
+        [PSCustomObject]@{ Name = 'mir-black';      Desc = 'Run AI copy jobs, then mirror jobs to WD Black';                Action = { mir-black } }
+        [PSCustomObject]@{ Name = 'mir-backup';     Desc = 'Mirror NAS media and videos to the external backup drive';      Action = { mir-backup } }
+        [PSCustomObject]@{ Name = 'mir-data';       Desc = 'Mirror D:\ to NAS data share';                                  Action = { mir-data } }
+        [PSCustomObject]@{ Name = 'mir-github';     Desc = 'Mirror G:\ to NAS GitHub share';                                Action = { mir-github } }
+        [PSCustomObject]@{ Name = 'mir-webserver';  Desc = 'Mirror local web root to NAS webserver share';                  Action = { mir-webserver } }
+        [PSCustomObject]@{ Name = 'mir-ai';         Desc = 'Mirror X:\ to external hard drive AI folder';                   Action = { mir-ai } }
+        [PSCustomObject]@{ Name = 'mir-media';      Desc = 'Mirror M:\ to external hard drive media folder';                Action = { mir-media } }
+        [PSCustomObject]@{ Name = 'mir-nas-media';  Desc = 'Mirror NAS media to the external hard drive';                   Action = { mir-nas-media } }
+        [PSCustomObject]@{ Name = 'mir-nas-videos'; Desc = 'Mirror NAS videos to the external hard drive';                  Action = { mir-nas-videos } }
+        [PSCustomObject]@{ Name = 'mir-ai-media';   Desc = 'Copy AI outputs into X:\media without deletions';               Action = { mir-ai-media } }
+        [PSCustomObject]@{ Name = 'mir-scripts';    Desc = 'Mirror PowerShell scripts to the dotfiles backup';              Action = { mir-scripts } }
+    )
 
     Write-Host ""
     Write-Host "󰑮 Available mirror jobs" -ForegroundColor Cyan
     Write-Host ""
 
-    for ($i = 0; $i -lt $options.Count; $i++) {
-        Write-Host (" {0} " -f $menuGlyphs[$i]) -NoNewline -ForegroundColor Gray
-        Write-Host ("{0,-26} " -f $options[$i].Name) -NoNewline -ForegroundColor Blue
-        Write-Host $options[$i].Desc -ForegroundColor Gray
+    $menuIndex = 1
+    foreach ($group in $groupedOptions) {
+        Write-Host $group.Header -ForegroundColor DarkCyan
+
+        foreach ($item in $group.Items) {
+            Write-Host (" {0,2}. " -f $menuIndex) -NoNewline -ForegroundColor Gray
+            Write-Host ("{0,-26} " -f $item.Name) -NoNewline -ForegroundColor Blue
+            Write-Host $item.Desc -ForegroundColor Gray
+            $menuIndex++
+        }
+
+        Write-Host ""
     }
 
-    Write-Host (" {0} " -f $menuGlyphs[6]) -NoNewline -ForegroundColor Gray
-    Write-Host ("{0,-26} " -f 'Mirror All to NAS') -NoNewline -ForegroundColor Blue
-    Write-Host "Run all mirror jobs that send data to the NAS" -ForegroundColor Gray
-
-    Write-Host (" {0} " -f $menuGlyphs[7]) -NoNewline -ForegroundColor Gray
-    Write-Host ("{0,-26} " -f 'Mirror All to WD Black') -NoNewline -ForegroundColor Blue
-    Write-Host "Run mir-ai-media first, then all mirror jobs that send data to WD Black" -ForegroundColor Gray
-
-    Write-Host (" {0} " -f $menuGlyphs[8]) -NoNewline -ForegroundColor Gray
-    Write-Host ("{0,-26} " -f 'Run All') -NoNewline -ForegroundColor Blue
-    Write-Host "Run all mirror jobs in defined order" -ForegroundColor Gray
+    Write-Host (" {0,2}. " -f 0) -NoNewline -ForegroundColor Gray
+    Write-Host ("{0,-26} " -f 'Cancel') -NoNewline -ForegroundColor Blue
+    Write-Host "Exit without running any jobs" -ForegroundColor Gray
 
     Write-Host ""
     $input = Read-Host "Select a number"
@@ -424,59 +556,12 @@ function mir {
 
     if ($choice -eq 0) {
         Write-Host ""
-        Write-Host "Running ALL mirror jobs (in defined order)" -ForegroundColor Cyan
-        Write-Host ""
-
-        foreach ($job in $options) {
-            Write-Host "Running: $($job.Name)" -ForegroundColor Cyan
-            Write-Host "Info:    $($job.Desc)" -ForegroundColor DarkGray
-            Write-Host ""
-            & $job.Action
-        }
-
-        return
-    }
-
-    if ($choice -eq 7) {
-        $nasJobs = @(
-            $options | Where-Object { $_.Name -in @('mir-data', 'mir-github', 'mir-webserver') }
-        )
-
-        Write-Host ""
-        Write-Host "Running all NAS mirror jobs" -ForegroundColor Cyan
-        Write-Host ""
-
-        foreach ($job in $nasJobs) {
-            Write-Host "Running: $($job.Name)" -ForegroundColor Cyan
-            Write-Host "Info:    $($job.Desc)" -ForegroundColor DarkGray
-            Write-Host ""
-            & $job.Action
-        }
-
-        return
-    }
-
-    if ($choice -eq 8) {
-        $hddJobs = @(
-            $options | Where-Object { $_.Name -in @('mir-ai-media', 'mir-ai', 'mir-media') }
-        )
-
-        Write-Host ""
-        Write-Host "Running all external hard drive mirror jobs" -ForegroundColor Cyan
-        Write-Host ""
-
-        foreach ($job in $hddJobs) {
-            Write-Host "Running: $($job.Name)" -ForegroundColor Cyan
-            Write-Host "Info:    $($job.Desc)" -ForegroundColor DarkGray
-            Write-Host ""
-            & $job.Action
-        }
-
+        Write-Host "Cancelled." -ForegroundColor DarkGray
         return
     }
 
     if ($choice -lt 1 -or $choice -gt $options.Count) {
-        Write-Host "Invalid choice. Pick 1 to 8, or 0." -ForegroundColor Red
+        Write-Host "Invalid choice. Pick 1 to $($options.Count), or 0 to cancel." -ForegroundColor Red
         return
     }
 
@@ -490,52 +575,3 @@ function mir {
     & $selected.Action
 }
 
-<#
-.SYNOPSIS
-Copies readable files from one folder to another and skips broken ones.
-#>
-function salvage {
-    param(
-        [Parameter(Mandatory = $true, Position = 0)]
-        [string]$source,
-
-        [Parameter(Mandatory = $true, Position = 1)]
-        [string]$destination
-    )
-
-    if (-not (Test-Path -LiteralPath $source -PathType Container)) {
-        throw "Source folder does not exist: $source"
-    }
-
-    if (-not (Test-Path -LiteralPath $destination)) {
-        New-Item -ItemType Directory -Path $destination -Force | Out-Null
-    }
-
-    $source = (Get-Item -LiteralPath $source).FullName.TrimEnd('\')
-    $destination = (Get-Item -LiteralPath $destination).FullName.TrimEnd('\')
-
-    $logFile = Join-Path $destination 'salvage_failed.txt'
-
-    if (Test-Path -LiteralPath $logFile) {
-        Remove-Item -LiteralPath $logFile -Force
-    }
-
-    Get-ChildItem -LiteralPath $source -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
-        $relativePath = $_.FullName.Substring($source.Length).TrimStart('\')
-        $targetFile = Join-Path $destination $relativePath
-        $targetDir = Split-Path -Path $targetFile -Parent
-
-        if (-not (Test-Path -LiteralPath $targetDir)) {
-            New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
-        }
-
-        try {
-            Copy-Item -LiteralPath $_.FullName -Destination $targetFile -Force -ErrorAction Stop
-            Write-Host "OK   $relativePath"
-        }
-        catch {
-            Add-Content -Path $logFile -Value $relativePath
-            Write-Warning "FAIL $relativePath"
-        }
-    }
-}
