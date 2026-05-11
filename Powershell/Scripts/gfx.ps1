@@ -128,8 +128,7 @@ function coverfiller {
 
 <#
 .SYNOPSIS
-In leaf directories, converts existing folder.(png|jpg|jpeg|webp) to folder.webp
-(resize max 1200x1200, quality 60) using ImageMagick. Deletes original by default.
+In leaf directories, converts existing folder.<image> to folder.webp
 #>
 function coverconv {
 

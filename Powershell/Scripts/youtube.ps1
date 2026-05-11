@@ -59,4 +59,20 @@ function get-mp3 {
         "$url"
 }
 
+<#
+.SYNOPSIS
+Downloads English SRT subtitles from a YouTube video.
+#>
+function get-srt {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Url
+    )
 
+    if (-not (Get-Command yt-dlp -ErrorAction SilentlyContinue)) {
+        Write-Host "yt-dlp was not found in PATH." -ForegroundColor Red
+        return
+    }
+
+    yt-dlp --skip-download --write-subs --sub-lang en --sub-format srt "$Url"
+}

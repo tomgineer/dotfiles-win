@@ -227,3 +227,58 @@ function not4k() {
         Write-Host 'All video files in the current directory are 4K.'
     }
 }
+
+<#
+.SYNOPSIS
+Scans child folders for movies and creates a middle-frame folder.jpg thumbnail.
+#>
+function create-thumbs {
+    $videoExt = @('.avi','.mkv','.mp4')
+    $ffmpeg  = (Get-Command ffmpeg  -ErrorAction Stop).Source
+    $ffprobe = (Get-Command ffprobe -ErrorAction Stop).Source
+    $root    = (Get-Location).Path
+
+    $folders = Get-ChildItem -Path $root -Directory -Recurse
+
+    foreach ($folder in $folders) {
+        $out = Join-Path $folder.FullName 'folder.jpg'
+
+        if (Test-Path $out) {
+            continue
+        }
+
+        $video = Get-ChildItem -Path $folder.FullName -File |
+            Where-Object { $videoExt -contains $_.Extension.ToLowerInvariant() } |
+            Sort-Object Length -Descending |
+            Select-Object -First 1
+
+        if (-not $video) {
+            continue
+        }
+
+        $duration = & $ffprobe `
+            -v error `
+            -show_entries format=duration `
+            -of default=nk=1:nw=1 `
+            "$($video.FullName)"
+
+        if (-not $duration) {
+            Write-Warning "Skipping (no duration): $($video.FullName)"
+            continue
+        }
+
+        $mid = ([double]$duration / 2).ToString('0.###', [cultureinfo]::InvariantCulture)
+
+        & $ffmpeg -hide_banner -loglevel error `
+            -ss $mid -i "$($video.FullName)" `
+            -frames:v 1 -an `
+            -q:v 2 `
+            -y "$out"
+
+        if (Test-Path $out) {
+            Write-Host "Created folder.jpg for $($folder.FullName)"
+        } else {
+            Write-Warning "Failed: $($video.FullName)"
+        }
+    }
+}
