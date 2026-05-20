@@ -279,7 +279,6 @@ All jobs mirroring data to External HDD
 function mir-black {
     $jobs = @(
         @{ Mode = 'copy'; Source = 'X:\apps\forge\webui\outputs\txt2img-images'; Destination = 'X:\media\forge'; LogName = 'copy_ai_forge' }
-        @{ Mode = 'copy'; Source = 'X:\apps\comfy_ui\ComfyUI\output'; Destination = 'X:\media\comfy_ui'; LogName = 'copy_ai_comfy_ui' }
         @{ Mode = 'copy'; Source = 'X:\apps\wan2gp\outputs'; Destination = 'X:\media\wan'; LogName = 'copy_ai_wan' }
         @{ Mode = 'mirror'; Source = 'D:\'; Destination = 'W:\drives\data'; LogName = 'log_black_data' }
         @{ Mode = 'mirror'; Source = 'G:\'; Destination = 'W:\drives\github'; LogName = 'log_black_github' }
@@ -430,13 +429,6 @@ function mir-ai-media {
         -Source 'X:\apps\forge\webui\outputs\txt2img-images' `
         -Destination 'X:\media\forge' `
         -LogName 'copy_ai_forge'
-
-    # ComfyUI: ComfyUI output -> media library
-    Invoke-RoboLocal `
-        -Mode 'copy' `
-        -Source 'X:\apps\comfy_ui\ComfyUI\output' `
-        -Destination 'X:\media\comfy_ui' `
-        -LogName 'copy_ai_comfy_ui'
 
     # WAN: outputs -> media library
     Invoke-RoboLocal `
