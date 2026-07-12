@@ -88,3 +88,37 @@ function disc-artist {
 
     Write-Host "Done." -ForegroundColor Green
 }
+
+<#
+.SYNOPSIS
+Sets the ARTIST and ALBUM tags for all .flac files in the current folder.
+#>
+function setmeta {
+    param (
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string]$Artist,
+
+        [Parameter(Mandatory = $true, Position = 1)]
+        [string]$Title
+    )
+
+    $files = Get-ChildItem -File -Filter "*.flac"
+
+    if (-not $files) {
+        Write-Warning "No FLAC files found in the current folder."
+        return
+    }
+
+    foreach ($file in $files) {
+        metaflac `
+            --remove-tag=ARTIST `
+            --remove-tag=ALBUM `
+            --set-tag="ARTIST=$Artist" `
+            --set-tag="ALBUM=$Title" `
+            -- $file.FullName
+    }
+
+    Write-Host "Metadata updated for $($files.Count) FLAC file(s)."
+    Write-Host "Artist: $Artist"
+    Write-Host "Album:  $Title"
+}

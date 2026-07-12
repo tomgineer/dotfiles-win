@@ -82,6 +82,34 @@ function info {
 
 <#
 .SYNOPSIS
+Counts files with the specified extension in the current folder and all subfolders.
+#>
+function count {
+    param(
+        [Parameter(Mandatory, Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Extension
+    )
+
+    $Extension = $Extension.Trim().TrimStart(".")
+    if ([string]::IsNullOrWhiteSpace($Extension)) {
+        throw "Specify a file extension, for example: count pdf"
+    }
+
+    $fileCount = (
+        Get-ChildItem -LiteralPath . -File -Recurse -Force -ErrorAction SilentlyContinue |
+            Where-Object Extension -EQ ".$Extension" |
+            Measure-Object
+    ).Count
+
+    $noun = if ($fileCount -eq 1) { "file" } else { "files" }
+    Write-Host "Found " -NoNewline
+    Write-Host $fileCount -ForegroundColor Green -NoNewline
+    Write-Host " .$Extension $noun."
+}
+
+<#
+.SYNOPSIS
 Rebuilds the Windows icon and thumbnail cache for the current user.
 #>
 function reb-cache {
@@ -146,4 +174,54 @@ function colors {
     }
 
     Write-Host ""
+}
+
+<#
+.SYNOPSIS
+Creates a UTF-8 tree.txt file with folders and files.
+#>
+function make-tree {
+    param(
+        [string]$Path = ".",
+        [string]$OutputFile = "tree.txt"
+    )
+
+    $root = Get-Item -LiteralPath $Path
+
+    function Write-Tree {
+        param(
+            [string]$CurrentPath,
+            [string]$Prefix = ""
+        )
+
+        $items = Get-ChildItem -LiteralPath $CurrentPath -Force |
+            Sort-Object @{ Expression = "PSIsContainer"; Descending = $true }, Name
+
+        for ($i = 0; $i -lt $items.Count; $i++) {
+            $item = $items[$i]
+            $isLast = $i -eq ($items.Count - 1)
+
+            $branch = if ($isLast) { "+---" } else { "+---" }
+            "$Prefix$branch$($item.Name)"
+
+            if ($item.PSIsContainer) {
+                $newPrefix = if ($isLast) { "$Prefix    " } else { "$Prefix|   " }
+                Write-Tree -CurrentPath $item.FullName -Prefix $newPrefix
+            }
+        }
+    }
+
+    $content = @(
+        $root.FullName
+        Write-Tree -CurrentPath $root.FullName
+    ) -join "`r`n"
+
+    $utf8Bom = New-Object System.Text.UTF8Encoding $true
+    [System.IO.File]::WriteAllText(
+        (Join-Path $root.FullName $OutputFile),
+        $content,
+        $utf8Bom
+    )
+
+    Write-Host "Tree saved to: $(Join-Path $root.FullName $OutputFile)"
 }
