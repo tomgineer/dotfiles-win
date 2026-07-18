@@ -315,6 +315,7 @@ function mir-backup {
     $jobs = @(
         @{ Mode = 'mirror'; Source = '\\bytebunker\media'; Destination = 'W:\media'; LogName = 'log_backup_media' }
         @{ Mode = 'mirror'; Source = '\\bytebunker\videos'; Destination = 'W:\videos'; LogName = 'log_backup_videos' }
+        @{ Mode = 'mirror'; Source = '\\bytebunker\users'; Destination = 'W:\users'; LogName = 'log_backup_users' }
     )
 
     foreach ($job in $jobs) {
