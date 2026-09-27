@@ -253,7 +253,7 @@ function mir-nas {
     $jobs = @(
         @{ Source = 'D:\'; Destination = '\\bytebunker\drives\data'; LogName = 'log_nas_data' }
         @{ Source = 'G:\'; Destination = '\\bytebunker\drives\github'; LogName = 'log_nas_github' }
-        @{ Source = 'E:\xampp\htdocs'; Destination = '\\bytebunker\drives\webserver'; LogName = 'log_nas_webserver' }
+        @{ Source = 'E:\www'; Destination = '\\bytebunker\drives\webserver'; LogName = 'log_nas_webserver' }
     )
 
     foreach ($job in $jobs) {
@@ -284,7 +284,7 @@ function mir-black {
         @{ Mode = 'mirror'; Source = 'D:\'; Destination = 'W:\drives\data'; LogName = 'log_black_data' }
         @{ Mode = 'mirror'; Source = 'G:\'; Destination = 'W:\drives\github'; LogName = 'log_black_github' }
         @{ Mode = 'mirror'; Source = 'M:\'; Destination = 'W:\drives\media'; LogName = 'log_black_media' }
-        @{ Mode = 'mirror'; Source = 'E:\xampp\htdocs'; Destination = 'W:\drives\webserver'; LogName = 'log_black_webserver' }
+        @{ Mode = 'mirror'; Source = 'E:\'; Destination = 'W:\drives\webserver'; LogName = 'log_black_webserver' }
         @{ Mode = 'mirror'; Source = 'X:\'; Destination = 'W:\drives\ai'; LogName = 'log_black_ai' }
     )
 
@@ -367,7 +367,7 @@ Mirrors the local web root to the NAS webserver share.
 function mir-webserver {
     Invoke-NasCredential
     Invoke-RoboMirror `
-        -Source 'E:\xampp\htdocs' `
+        -Source 'E:\www' `
         -Destination '\\bytebunker\drives\webserver' `
         -LogName 'log_drive_webserver' `
         -ExtraExcludeDirs @('.git')

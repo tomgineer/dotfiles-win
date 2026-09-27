@@ -37,7 +37,17 @@ function rarit {
 
     Write-Host "Creating archive: $tmpRar" -ForegroundColor Cyan
 
-    & $rarExe a -r -ep1 "$tmpRar" $items.FullName | Out-Null
+    # Exclude image files below public\images, but keep its directory tree.
+    # WinRAR applies these masks recursively and still archives empty folders.
+    $imageExtensions = @(
+        "avif", "bmp", "gif", "heic", "heif", "ico", "jfif",
+        "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"
+    )
+    $imageExclusions = $imageExtensions | ForEach-Object {
+        "-xpublic\images\*.$_"
+    }
+
+    & $rarExe a -r -ep1 $imageExclusions "$tmpRar" $items.FullName | Out-Null
 
     if (-not (Test-Path $tmpRar)) {
         Write-Error "Archive creation failed (RAR file not found)."

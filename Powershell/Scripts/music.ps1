@@ -82,8 +82,14 @@ function disc-artist {
     }
 
     foreach ($file in $files) {
-        Write-Host "Setting ARTIST=$Artist → $($file.Name)"
-        metaflac --remove-tag=ARTIST --set-tag=ARTIST="$Artist" "$($file.FullName)"
+        Write-Host "Setting ARTIST and ALBUMARTIST to '$Artist' → $($file.Name)"
+
+        metaflac `
+            --remove-tag=ARTIST `
+            --remove-tag=ALBUMARTIST `
+            --set-tag=ARTIST="$Artist" `
+            --set-tag=ALBUMARTIST="$Artist" `
+            "$($file.FullName)"
     }
 
     Write-Host "Done." -ForegroundColor Green
@@ -121,4 +127,61 @@ function setmeta {
     Write-Host "Metadata updated for $($files.Count) FLAC file(s)."
     Write-Host "Artist: $Artist"
     Write-Host "Album:  $Title"
+}
+
+<#
+.SYNOPSIS
+Renames FLAC files using track titles from tracks.json and updates their TITLE and TRACKNUMBER tags.
+#>
+function disc-tracks {
+
+    if (-not (Test-Path "tracks.json")) {
+        throw "tracks.json not found."
+    }
+
+    # Expected tracks.json format:
+    # {
+    #   "tracks": [
+    #     "First Track",
+    #     "Second Track",
+    #     "Third Track"
+    #   ]
+    # }
+
+    $tracks = (Get-Content "tracks.json" -Raw -Encoding UTF8 | ConvertFrom-Json).tracks
+
+    Get-ChildItem "*.flac" | ForEach-Object {
+
+        if ($_.BaseName -notmatch '^(\d+)\s*-\s*') {
+            Write-Warning "Skipping '$($_.Name)': no track number."
+            return
+        }
+
+        $number = [int]$Matches[1]
+        $title  = $tracks[$number - 1]
+
+        if (-not $title) {
+            Write-Warning "No title found for track $number."
+            return
+        }
+
+        $safeTitle = ($title -replace '[<>:"/\\|?*]', '-').Trim().TrimEnd('.')
+        $track     = '{0:D2}' -f $number
+        $newName   = "$track - $safeTitle.flac"
+
+        & metaflac `
+            "--remove-tag=TITLE" `
+            "--remove-tag=TRACKNUMBER" `
+            "--set-tag=TITLE=$title" `
+            "--set-tag=TRACKNUMBER=$number" `
+            $_.FullName
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "metaflac failed for '$($_.Name)'."
+        }
+
+        Rename-Item -LiteralPath $_.FullName -NewName $newName
+
+        Write-Host "$track - $title"
+    }
 }
