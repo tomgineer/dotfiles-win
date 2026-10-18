@@ -12,11 +12,11 @@ function goto {
         git     = 'G:\'
         power   = 'D:\powershell'
         icons   = 'G:\iconium'
-        web     = 'E:\xampp\htdocs'
+        web     = 'E:\www'
         scripts = 'G:\dotfiles-win'
         home    = 'D:\'
         profile = "$HOME\Documents\PowerShell"
-        comfy   = "C:\Users\tom\Documents\ComfyUI\models"
+        comfy   = 'X:\apps\comfy_ui_files\models'
     }
 
     # No argument: show targets
@@ -45,7 +45,13 @@ function goto {
         return
     }
 
-    Set-Location $targets[$key]
+    $path = $targets[$key]
+    if (-not (Test-Path -LiteralPath $path -PathType Container)) {
+        Write-Warning "Target folder does not exist: $path"
+        return
+    }
+
+    Set-Location -LiteralPath $path
 
     Clear-Host
     eza --icons --group-directories-first --color=always --git --header

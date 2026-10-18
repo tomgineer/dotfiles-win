@@ -43,6 +43,11 @@ function script:Invoke-RoboMirror {
         [string[]]$ExtraExcludeDirs = @()
     )
 
+    if (-not (Test-Path -LiteralPath $Source -PathType Container)) {
+        Write-Error "Robocopy source does not exist: $Source"
+        return
+    }
+
     # Log Directory
     $LogDir = 'D:\powershell\.logs'
 
@@ -158,6 +163,11 @@ function script:Invoke-RoboLocal {
 
         [string]$LogDir = 'D:\powershell\.logs'
     )
+
+    if (-not (Test-Path -LiteralPath $Source -PathType Container)) {
+        Write-Error "Robocopy source does not exist: $Source"
+        return
+    }
 
     if (-not (Test-Path -LiteralPath $LogDir)) {
         New-Item -ItemType Directory -Path $LogDir | Out-Null
@@ -278,9 +288,7 @@ All jobs mirroring data to External HDD
 #>
 function mir-black {
     $jobs = @(
-        @{ Mode = 'copy'; Source = 'X:\apps\forge\webui\outputs\txt2img-images'; Destination = 'X:\media\forge'; LogName = 'copy_ai_forge' }
-        @{ Mode = 'copy'; Source = 'X:\apps\comfy_ui_files\output'; Destination = 'X:\media\comfy_ui'; LogName = 'copy_ai_comfy_ui' }
-        @{ Mode = 'copy'; Source = 'X:\apps\wan2gp\outputs'; Destination = 'X:\media\wan'; LogName = 'copy_ai_wan' }
+        @{ Mode = 'copy'; Source = 'X:\apps\comfy_ui_files\output'; Destination = 'X:\Media\ComfyUI'; LogName = 'copy_ai_comfy_ui' }
         @{ Mode = 'mirror'; Source = 'D:\'; Destination = 'W:\drives\data'; LogName = 'log_black_data' }
         @{ Mode = 'mirror'; Source = 'G:\'; Destination = 'W:\drives\github'; LogName = 'log_black_github' }
         @{ Mode = 'mirror'; Source = 'M:\'; Destination = 'W:\drives\media'; LogName = 'log_black_media' }
@@ -422,29 +430,14 @@ function mir-nas-videos {
 
 <#
 .SYNOPSIS
-Copies AI output folders into the local media library targets.
+Copies ComfyUI output into the local media library.
 #>
 function mir-ai-media {
-    # Forge: txt2img output -> media library
-    Invoke-RoboLocal `
-        -Mode 'copy' `
-        -Source 'X:\apps\forge\webui\outputs\txt2img-images' `
-        -Destination 'X:\media\forge' `
-        -LogName 'copy_ai_forge'
-
-    # ComfyUI: outputs -> media library
     Invoke-RoboLocal `
         -Mode 'copy' `
         -Source 'X:\apps\comfy_ui_files\output' `
-        -Destination 'X:\media\comfy_ui' `
+        -Destination 'X:\Media\ComfyUI' `
         -LogName 'copy_ai_comfy_ui'
-
-    # WAN: outputs -> media library
-    Invoke-RoboLocal `
-        -Mode 'copy' `
-        -Source 'X:\apps\wan2gp\outputs' `
-        -Destination 'X:\media\wan' `
-        -LogName 'copy_ai_wan'
 }
 
 <#
@@ -493,7 +486,7 @@ function mir {
     $groupedOptions = @(
         [PSCustomObject]@{ Header = 'Aggregate Jobs'; Items = @(
             [PSCustomObject]@{ Name = 'mir-nas';        Desc = 'Run all NAS mirror jobs';                                  Action = { mir-nas } }
-            [PSCustomObject]@{ Name = 'mir-black';      Desc = 'Run AI copy jobs, then mirror jobs to WD Black';           Action = { mir-black } }
+            [PSCustomObject]@{ Name = 'mir-black';      Desc = 'Copy ComfyUI output, then mirror drives to WD Black';      Action = { mir-black } }
             [PSCustomObject]@{ Name = 'mir-backup';     Desc = 'Mirror NAS media and videos to the external backup drive'; Action = { mir-backup } }
         ) }
         [PSCustomObject]@{ Header = 'Single Jobs'; Items = @(
@@ -504,14 +497,14 @@ function mir {
             [PSCustomObject]@{ Name = 'mir-media';      Desc = 'Mirror M:\ to external hard drive media folder';           Action = { mir-media } }
             [PSCustomObject]@{ Name = 'mir-nas-media';  Desc = 'Mirror NAS media to the external hard drive';              Action = { mir-nas-media } }
             [PSCustomObject]@{ Name = 'mir-nas-videos'; Desc = 'Mirror NAS videos to the external hard drive';             Action = { mir-nas-videos } }
-            [PSCustomObject]@{ Name = 'mir-ai-media';   Desc = 'Copy AI outputs into X:\media without deletions';          Action = { mir-ai-media } }
+            [PSCustomObject]@{ Name = 'mir-ai-media';   Desc = 'Copy ComfyUI output into X:\Media without deletions';      Action = { mir-ai-media } }
             [PSCustomObject]@{ Name = 'mir-scripts';    Desc = 'Mirror PowerShell scripts to the dotfiles backup';         Action = { mir-scripts } }
         ) }
     )
 
     $options = @(
         [PSCustomObject]@{ Name = 'mir-nas';        Desc = 'Run all NAS mirror jobs';                                       Action = { mir-nas } }
-        [PSCustomObject]@{ Name = 'mir-black';      Desc = 'Run AI copy jobs, then mirror jobs to WD Black';                Action = { mir-black } }
+        [PSCustomObject]@{ Name = 'mir-black';      Desc = 'Copy ComfyUI output, then mirror drives to WD Black';           Action = { mir-black } }
         [PSCustomObject]@{ Name = 'mir-backup';     Desc = 'Mirror NAS media and videos to the external backup drive';      Action = { mir-backup } }
         [PSCustomObject]@{ Name = 'mir-data';       Desc = 'Mirror D:\ to NAS data share';                                  Action = { mir-data } }
         [PSCustomObject]@{ Name = 'mir-github';     Desc = 'Mirror G:\ to NAS GitHub share';                                Action = { mir-github } }
@@ -520,7 +513,7 @@ function mir {
         [PSCustomObject]@{ Name = 'mir-media';      Desc = 'Mirror M:\ to external hard drive media folder';                Action = { mir-media } }
         [PSCustomObject]@{ Name = 'mir-nas-media';  Desc = 'Mirror NAS media to the external hard drive';                   Action = { mir-nas-media } }
         [PSCustomObject]@{ Name = 'mir-nas-videos'; Desc = 'Mirror NAS videos to the external hard drive';                  Action = { mir-nas-videos } }
-        [PSCustomObject]@{ Name = 'mir-ai-media';   Desc = 'Copy AI outputs into X:\media without deletions';               Action = { mir-ai-media } }
+        [PSCustomObject]@{ Name = 'mir-ai-media';   Desc = 'Copy ComfyUI output into X:\Media without deletions';           Action = { mir-ai-media } }
         [PSCustomObject]@{ Name = 'mir-scripts';    Desc = 'Mirror PowerShell scripts to the dotfiles backup';              Action = { mir-scripts } }
     )
 

@@ -225,3 +225,39 @@ function make-tree {
 
     Write-Host "Tree saved to: $(Join-Path $root.FullName $OutputFile)"
 }
+
+<#
+.SYNOPSIS
+Restarts the Apache24 Windows service with administrator privileges.
+#>
+function restart-apache {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = [Security.Principal.WindowsPrincipal]::new($identity)
+    $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+    if ($isAdmin) {
+        Restart-Service -Name 'Apache24'
+        Write-Host 'Apache restarted.'
+        return
+    }
+
+    Start-Process pwsh `
+        -Verb RunAs `
+        -Wait `
+        -ArgumentList '-NoProfile', '-Command', "Restart-Service -Name 'Apache24'"
+
+    Write-Host 'Apache restarted.'
+}
+
+<#
+.SYNOPSIS
+Opens the Windows hosts file in Notepad++ with administrator privileges.
+#>
+function open-hosts {
+    $notepad = Join-Path $env:ProgramFiles 'Notepad++\notepad++.exe'
+    $hostsFile = Join-Path $env:SystemRoot 'System32\drivers\etc\hosts'
+
+    Start-Process -FilePath $notepad `
+        -Verb RunAs `
+        -ArgumentList "-multiInst `"$hostsFile`""
+}

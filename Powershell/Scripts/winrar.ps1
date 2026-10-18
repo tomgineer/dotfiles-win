@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-Archives the current folder contents to a timestamped RAR in restore_points.
+Archives the current folder contents to a timestamped RAR in "Restore Points".
 #>
 function rarit {
     $rarExe      = "C:\Program Files\WinRAR\rar.exe"
-    $targetDir   = "D:\restore_points"
+    $targetDir   = "D:\Restore Points"
 
     if (-not (Test-Path $rarExe)) {
         Write-Error "WinRAR not found at $rarExe"
