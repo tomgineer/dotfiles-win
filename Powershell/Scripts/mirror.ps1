@@ -288,7 +288,7 @@ All jobs mirroring data to External HDD
 #>
 function mir-black {
     $jobs = @(
-        @{ Mode = 'copy'; Source = 'X:\apps\comfy_ui_files\output'; Destination = 'X:\Media\ComfyUI'; LogName = 'copy_ai_comfy_ui' }
+        # @{ Mode = 'copy'; Source = 'X:\apps\comfy_ui_files\output'; Destination = 'X:\Media\ComfyUI'; LogName = 'copy_ai_comfy_ui' }
         @{ Mode = 'mirror'; Source = 'D:\'; Destination = 'W:\drives\data'; LogName = 'log_black_data' }
         @{ Mode = 'mirror'; Source = 'G:\'; Destination = 'W:\drives\github'; LogName = 'log_black_github' }
         @{ Mode = 'mirror'; Source = 'M:\'; Destination = 'W:\drives\media'; LogName = 'log_black_media' }

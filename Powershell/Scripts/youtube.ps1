@@ -11,11 +11,11 @@ function get-youtube {
     }
 
     yt-dlp `
-        --js-runtimes node `
         --windows-filenames `
         --no-playlist `
         --cookies "D:\powershell\yt-dlp\cookies.txt" `
         -f "bv*+ba/b" `
+        --merge-output-format mp4 `
         "$url"
 }
 
@@ -25,15 +25,18 @@ Downloads a YouTube playlist using yt-dlp with safe Windows naming.
 #>
 function get-playlist {
     param([string]$url)
+
     if ([string]::IsNullOrWhiteSpace($url)) {
         Write-Host "Syntax: get-playlist <url>"
         return
     }
 
     yt-dlp `
-        --js-runtimes node `
         --windows-filenames `
+        --yes-playlist `
         --cookies "D:\powershell\yt-dlp\cookies.txt" `
+        -f "bv*+ba/b" `
+        --merge-output-format mp4 `
         "$url"
 }
 
@@ -43,13 +46,13 @@ Downloads audio from one YouTube video and converts it to MP3.
 #>
 function get-mp3 {
     param([string]$url)
+
     if ([string]::IsNullOrWhiteSpace($url)) {
         Write-Host "Syntax: get-mp3 <url>"
         return
     }
 
     yt-dlp `
-        --js-runtimes node `
         --windows-filenames `
         --no-playlist `
         --cookies "D:\powershell\yt-dlp\cookies.txt" `
@@ -64,15 +67,21 @@ function get-mp3 {
 Downloads English SRT subtitles from a YouTube video.
 #>
 function get-srt {
-    param (
-        [Parameter(Mandatory = $true)]
-        [string]$Url
-    )
+    param([string]$url)
 
-    if (-not (Get-Command yt-dlp -ErrorAction SilentlyContinue)) {
-        Write-Host "yt-dlp was not found in PATH." -ForegroundColor Red
+    if ([string]::IsNullOrWhiteSpace($url)) {
+        Write-Host "Syntax: get-srt <url>"
         return
     }
 
-    yt-dlp --skip-download --write-subs --sub-lang en --sub-format srt "$Url"
+    yt-dlp `
+        --windows-filenames `
+        --no-playlist `
+        --cookies "D:\powershell\yt-dlp\cookies.txt" `
+        --skip-download `
+        --write-subs `
+        --sub-langs "en.*" `
+        --sub-format "srt/vtt/best" `
+        --convert-subs srt `
+        "$url"
 }
