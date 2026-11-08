@@ -261,3 +261,14 @@ function open-hosts {
         -Verb RunAs `
         -ArgumentList "-multiInst `"$hostsFile`""
 }
+
+<#
+.SYNOPSIS
+Starts the audio.cpp server with the web UI, management interface, and CUDA backend.
+#>
+function run-audio {
+    & "X:\Apps\audio.cpp\audiocpp_server.exe" `
+        --ui `
+        --ui-management `
+        --backend cuda
+}
